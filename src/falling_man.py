@@ -15,6 +15,25 @@ class Player(arcade.Sprite):
         pass
 
 
+class IncorrectSprite(arcade.Sprite):
+    def __init__(self, img, scale):
+        super().__init__(img, scale)
+        self.upper_bound = 2
+        self.change_x = self.upper_bound
+
+
+    def update(self):
+        self.center_y += movement_speed
+        self.center_x += self.change_x
+
+        if self.center_x <= 0:
+            self.change_x = abs(self.change_x)
+        elif self.center_x >= width:
+            self.change_x = -abs(self.change_x)
+        else:
+            pass
+            
+
 class MyGame(arcade.Window):
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
@@ -30,6 +49,9 @@ class MyGame(arcade.Window):
         self.player_list.append(player)
 
         self.incorrect_sprites_list = arcade.SpriteList()
+        for _ in range(5):
+            incorrect = IncorrectSprite("incorrect_1.png", incorrect_scaling)
+            self.incorrect_sprites_list.append(incorrect)
 
 
     def on_draw(self):
@@ -39,6 +61,11 @@ class MyGame(arcade.Window):
 
     
     def on_mouse_motion(self, x, y, dy, dx):
+        """
+        for player in self.player_list:
+            player.center_x = x
+            player.center_y = y
+        """
         pass
 
 
