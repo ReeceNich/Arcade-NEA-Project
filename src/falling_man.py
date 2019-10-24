@@ -6,7 +6,7 @@ width = 800
 height = 600
 title = "Falling Man"
 movement_speed = 2
-player_scaling = 0.1
+player_scaling = 0.2
 incorrect_scaling = 0.1
 
 class Player(arcade.Sprite):
@@ -45,7 +45,7 @@ class MyGame(arcade.Window):
         self.player_list = arcade.SpriteList()
         player = Player("images/player_01.png", player_scaling)
         player.center_x = width / 2
-        player.center_y = height *0.75
+        player.center_y = height * 0.85
         self.player_list.append(player)
 
         self.incorrect_sprites_list = arcade.SpriteList()
