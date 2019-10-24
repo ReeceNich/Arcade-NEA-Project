@@ -2,6 +2,7 @@
 Opens the CSV file of all the questions and returns a list with items as dictionaries containing id, question, answer, wrong answers (1 to 3) and difficulty.
 """
 import csv
+import sqlite3
 
 def read_csv_to_dictionary(filename):
     # open the csv file
@@ -31,8 +32,26 @@ def read_csv_to_dictionary(filename):
         return all_data
 
 
+def sql_to_csv(sql_filename, csv_filename):
+    try:
+        # open the database
+        with open(csv_filename, mode='w') as csv_writer:
+            # connect to the database
+            connection = sqlite3.connect(sql_filename)
+            cursor = connection.cursor()
+
+            for row in cursor.execute('SELECT * FROM questions'):
+                csv_writer.write(row)
+        
+        return True
+    except:
+        raise
+
+
 if __name__ == "__main__":
     d = read_csv_to_dictionary('questions.csv')
     for row in d:
         print(row)
     
+
+    sql_to_csv("questions.csv", "testing_questions.csv")
