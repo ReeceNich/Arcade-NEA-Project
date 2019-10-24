@@ -43,14 +43,14 @@ class MyGame(arcade.Window):
     def setup(self):
         # create sprites etc for a my game
         self.player_list = arcade.SpriteList()
-        player = Player("player_1.png", player_scaling)
+        player = Player("images/player_01.png", player_scaling)
         player.center_x = width / 2
         player.center_y = height *0.75
         self.player_list.append(player)
 
         self.incorrect_sprites_list = arcade.SpriteList()
         for _ in range(5):
-            incorrect = IncorrectSprite("incorrect_1.png", incorrect_scaling)
+            incorrect = IncorrectSprite("images/incorrect_01.png", incorrect_scaling)
             self.incorrect_sprites_list.append(incorrect)
 
 
