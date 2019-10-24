@@ -18,7 +18,7 @@ def read_csv_to_dictionary(filename):
                 line_count += 1
             else:
                 row_data = {"id": row[0],
-                            "questions": row[1],
+                            "question": row[1],
                             "correct_answer": row[2],
                             "wrong_answer_1": row[3],
                             "wrong_answer_2": row[4],
@@ -32,7 +32,7 @@ def read_csv_to_dictionary(filename):
 
 
 if __name__ == "__main__":
-    d = read_csv_to_dictionary('questions.txt')
+    d = read_csv_to_dictionary('questions.csv')
     for row in d:
         print(row)
     
