@@ -32,12 +32,12 @@ def read_csv_to_dictionary(filename):
         return all_data
 
 
-def sql_to_csv(sql_filename, csv_filename):
+def database_to_csv(database_filename, csv_filename):
     try:
         # open the database
         with open(csv_filename, mode='w') as csv_writer:
             # connect to the database
-            connection = sqlite3.connect(sql_filename)
+            connection = sqlite3.connect(database_filename)
             cursor = connection.cursor()
 
             for row in cursor.execute('SELECT * FROM questions'):
@@ -48,10 +48,21 @@ def sql_to_csv(sql_filename, csv_filename):
         raise
 
 
+def csv_to_database(csv_filename, database_filename):
+    pass
+
+def create_database(database_filename):
+    connection = sqlite3.connect(database_filename)
+    c = connection.cursor()
+    c.execute('''CREATE TABLE "questions" ( "id" INTEGER UNIQUE PRIMARY KEY, "question" TEXT, "answer" TEXT, "wrong_answer_1" TEXT, "wrong_answer_2" TEXT, "wrong_answer_3" TEXT, "difficulty" INTEGER )''')
+    connection.commit()
+    connection.close()
+
 if __name__ == "__main__":
     d = read_csv_to_dictionary('questions.csv')
     for row in d:
         print(row)
     
 
-    sql_to_csv("questions.csv", "testing_questions.csv")
+    create_database("questions.db")
+    #database_to_csv("questions.csv", "testing_questions.csv")
