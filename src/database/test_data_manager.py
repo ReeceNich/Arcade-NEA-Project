@@ -20,5 +20,5 @@ def test_csv_to_database(csv_filename, database_filename):
 
 if __name__ == "__main__":
     # test_read_csv_to_dictionary('questions.csv')
-    create_database("questions.db")
+    # create_database("questions.db")
     test_csv_to_database("questions.csv", "questions.db")

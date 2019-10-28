@@ -2,3 +2,4 @@ id,question,correct_answer,wrong_answer_1,wrong_answer_2,wrong_answer_3,difficul
 1,What is the capital of the UK?,London,Bristol,Southampton,Birmingam,1
 2,What colour is the sky?,Blue,Red,Green,Purple,1
 ,What is 12x12?,144,121,156,72,4
+,Whats 9+9?,18,99,81,21,1
