@@ -10,7 +10,6 @@ player_scaling = 0.2
 incorrect_scaling = 0.1
 
 class Player(arcade.Sprite):
-
     def update(self):
         pass
 
@@ -18,20 +17,10 @@ class Player(arcade.Sprite):
 class IncorrectSprite(arcade.Sprite):
     def __init__(self, img, scale):
         super().__init__(img, scale)
-        self.upper_bound = 2
-        self.change_x = self.upper_bound
 
 
     def update(self):
         self.center_y += movement_speed
-        self.center_x += self.change_x
-
-        if self.center_x <= 0:
-            self.change_x = abs(self.change_x)
-        elif self.center_x >= width:
-            self.change_x = -abs(self.change_x)
-        else:
-            pass
             
 
 class MyGame(arcade.Window):
@@ -49,9 +38,7 @@ class MyGame(arcade.Window):
         self.player_list.append(player)
 
         self.incorrect_sprites_list = arcade.SpriteList()
-        for _ in range(5):
-            incorrect = IncorrectSprite("images/incorrect_01.png", incorrect_scaling)
-            self.incorrect_sprites_list.append(incorrect)
+        self.delta_time_elapsed = 0
 
 
     def on_draw(self):
@@ -61,17 +48,33 @@ class MyGame(arcade.Window):
 
     
     def on_mouse_motion(self, x, y, dy, dx):
-        """
         for player in self.player_list:
             player.center_x = x
-            player.center_y = y
-        """
-        pass
 
 
-    def update(self, delta_time):
+    def on_update(self, delta_time):
+        self.delta_time_elapsed += delta_time
         self.player_list.update()
         self.incorrect_sprites_list.update()
+        
+        for sprite in self.incorrect_sprites_list:
+            if sprite.center_y > (height + 50):
+                sprite.remove_from_sprite_lists()
+
+        if len(self.incorrect_sprites_list) <= 5:
+            pass
+            # self.create_incorrect_object()
+        if self.delta_time_elapsed > 2:
+            self.create_incorrect_object()
+            self.delta_time_elapsed = 0
+
+
+    def create_incorrect_object(self):
+        incorrect = IncorrectSprite("images/incorrect_01.png", incorrect_scaling)
+        incorrect.center_x = random.randrange(width)
+        incorrect.center_y = random.randrange(-1, 0)
+        self.incorrect_sprites_list.append(incorrect)
+            
     
 
 if __name__ == "__main__":
