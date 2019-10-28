@@ -5,7 +5,7 @@ import random
 width = 800
 height = 600
 title = "Falling Man"
-movement_speed = 2
+initial_movement_speed = 2
 player_scaling = 0.2
 incorrect_scaling = 0.1
 
@@ -17,10 +17,6 @@ class Player(arcade.Sprite):
 class IncorrectSprite(arcade.Sprite):
     def __init__(self, img, scale):
         super().__init__(img, scale)
-
-
-    def update(self):
-        self.center_y += movement_speed
             
 
 class MyGame(arcade.Window):
@@ -39,6 +35,7 @@ class MyGame(arcade.Window):
 
         self.incorrect_sprites_list = arcade.SpriteList()
         self.delta_time_elapsed = 0
+        self.movement_speed = initial_movement_speed
 
 
     def on_draw(self):
@@ -54,10 +51,13 @@ class MyGame(arcade.Window):
 
     def on_update(self, delta_time):
         self.delta_time_elapsed += delta_time
+        self.movement_speed += 0.002
         self.player_list.update()
         self.incorrect_sprites_list.update()
         
         for sprite in self.incorrect_sprites_list:
+            sprite.center_y += self.movement_speed
+
             if sprite.center_y > (height + 50):
                 sprite.remove_from_sprite_lists()
 
