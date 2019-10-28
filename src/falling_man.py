@@ -8,7 +8,8 @@ title = "Falling Man"
 initial_movement_speed = 2
 player_scaling = 0.2
 incorrect_scaling = 0.1
-cloud_scaling = 0.1
+max_cloud_scaling = 0.2
+min_cloud_scaling = 0.05
 
 class Player(arcade.Sprite):
     def update(self):
@@ -90,14 +91,15 @@ class MyGame(arcade.Window):
     def create_incorrect_sprite(self):
         incorrect = IncorrectSprite("images/incorrect_01.png", incorrect_scaling)
         incorrect.center_x = random.randrange(width)
-        incorrect.center_y = random.randrange(-1, 0)
+        incorrect.center_y = random.randrange(-100, -50)
         self.incorrect_sprites_list.append(incorrect)
 
     
     def create_cloud_sprite(self):
-        cloud = CloudSprite("images/cloud_01.png", cloud_scaling)
+        scaling = random.uniform(min_cloud_scaling, max_cloud_scaling)
+        cloud = CloudSprite("images/cloud_01.png", scaling)
         cloud.center_x = random.randrange(width)
-        cloud.center_y = random.randrange(-1, 0)
+        cloud.center_y = random.randrange(-100, -50)
         self.cloud_sprites_list.append(cloud)
             
     
