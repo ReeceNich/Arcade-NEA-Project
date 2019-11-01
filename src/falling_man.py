@@ -53,6 +53,10 @@ class MyGame(arcade.Window):
         self.player_list.draw()
         self.incorrect_sprites_list.draw()
 
+        # draw the text onto the sprites.
+        for sprite in self.incorrect_sprites_list:
+            arcade.draw_text("answer", sprite.center_x, sprite.center_y, arcade.color.BLACK, font_size=12)
+
     
     def on_mouse_motion(self, x, y, dy, dx):
         for player in self.player_list:
