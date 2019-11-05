@@ -29,6 +29,8 @@ class CloudSprite(arcade.Sprite):
 class MyGame(arcade.Window):
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
+        self.width = width
+        self.height = height
         arcade.set_background_color(arcade.color.BABY_BLUE)
 
 
@@ -36,9 +38,9 @@ class MyGame(arcade.Window):
         # create sprites etc for a my game
         self.player_list = arcade.SpriteList()
         player = Player("images/player_01.png", player_scaling)
-        player.center_x = width / 2
-        # player.center_y = height - 2
-        player.top = height - 100
+        player.center_x = self.width / 2
+        # player.center_y = self.height - 2
+        player.top = self.height - 100
         self.player_list.append(player)
 
         self.incorrect_sprites_list = arcade.SpriteList()
@@ -57,6 +59,8 @@ class MyGame(arcade.Window):
         # draw the text onto the sprites.
         for sprite in self.incorrect_sprites_list:
             arcade.draw_text("answer", sprite.center_x, sprite.center_y, arcade.color.BLACK, font_size=12)
+
+        self.draw_toolbar()
 
     
     def on_mouse_motion(self, x, y, dy, dx):
@@ -81,7 +85,7 @@ class MyGame(arcade.Window):
         for sprite in self.incorrect_sprites_list:
             sprite.center_y += self.movement_speed
 
-            if sprite.center_y > (height + 50):
+            if sprite.center_y > (self.height + 50):
                 sprite.remove_from_sprite_lists()
 
 
@@ -89,13 +93,13 @@ class MyGame(arcade.Window):
         for cloud in self.cloud_sprites_list:
             cloud.center_y += self.movement_speed / 2
 
-            if cloud.center_y > (height + 50):
+            if cloud.center_y > (self.height + 50):
                 cloud.remove_from_sprite_lists()
 
 
     def create_incorrect_sprite(self):
         incorrect = IncorrectSprite("images/incorrect_01.png", incorrect_scaling)
-        incorrect.center_x = random.randrange(width)
+        incorrect.center_x = random.randrange(self.width)
         incorrect.center_y = random.randrange(-100, -50)
         self.incorrect_sprites_list.append(incorrect)
 
@@ -103,9 +107,13 @@ class MyGame(arcade.Window):
     def create_cloud_sprite(self):
         scaling = random.uniform(min_cloud_scaling, max_cloud_scaling)
         cloud = CloudSprite("images/cloud_01.png", scaling)
-        cloud.center_x = random.randrange(width)
+        cloud.center_x = random.randrange(self.width)
         cloud.center_y = random.randrange(-100, -50)
         self.cloud_sprites_list.append(cloud)
+
+    
+    def draw_toolbar(self):
+        arcade.draw_lrtb_rectangle_filled(0, width, height, height-100, arcade.color.WHITE)
             
     
 
