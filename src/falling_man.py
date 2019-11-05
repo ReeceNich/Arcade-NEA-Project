@@ -3,7 +3,7 @@ import random
 
 
 width = 800
-height = 600
+height = 1000
 title = "Falling Man"
 initial_movement_speed = 2
 player_scaling = 0.2
@@ -37,7 +37,8 @@ class MyGame(arcade.Window):
         self.player_list = arcade.SpriteList()
         player = Player("images/player_01.png", player_scaling)
         player.center_x = width / 2
-        player.center_y = height * 0.85
+        # player.center_y = height - 2
+        player.top = height - 100
         self.player_list.append(player)
 
         self.incorrect_sprites_list = arcade.SpriteList()
