@@ -40,7 +40,7 @@ class MyGame(arcade.Window):
         player = Player("images/player_01.png", player_scaling)
         player.center_x = self.width / 2
         # player.center_y = self.height - 2
-        player.top = self.height - 100
+        player.top = self.height - 110
         self.player_list.append(player)
 
         self.incorrect_sprites_list = arcade.SpriteList()
@@ -58,7 +58,7 @@ class MyGame(arcade.Window):
 
         # draw the text onto the sprites.
         for sprite in self.incorrect_sprites_list:
-            arcade.draw_text("answer", sprite.center_x, sprite.center_y, arcade.color.BLACK, font_size=12)
+            arcade.draw_text("answer", sprite.left, sprite.center_y, arcade.color.BLACK, font_size=12, width=int(sprite.right-sprite.left), align="center")
 
         self.draw_toolbar()
 
@@ -113,7 +113,8 @@ class MyGame(arcade.Window):
 
     
     def draw_toolbar(self):
-        arcade.draw_lrtb_rectangle_filled(0, width, height, height-100, arcade.color.WHITE)
+        arcade.draw_lrtb_rectangle_filled(0, self.width, self.height, self.height-100, arcade.color.WHITE)
+        arcade.draw_lrtb_rectangle_filled(0, self.width*0.15, self.height, self.height-100, (149, 249, 227))
             
     
 
