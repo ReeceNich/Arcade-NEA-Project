@@ -56,9 +56,7 @@ class MyGame(arcade.Window):
         self.player_list.draw()
         self.incorrect_sprites_list.draw()
 
-        # draw the text onto the sprites.
-        for sprite in self.incorrect_sprites_list:
-            arcade.draw_text("answer", sprite.left, sprite.center_y, arcade.color.BLACK, font_size=12, width=int(sprite.right-sprite.left), align="center")
+        self.draw_text_on_incorrect_sprites(self.incorrect_sprites_list)
 
         self.draw_toolbar()
 
@@ -112,11 +110,26 @@ class MyGame(arcade.Window):
         self.cloud_sprites_list.append(cloud)
 
     
+    def draw_text_on_incorrect_sprites(self, sprite_list):
+        # draw the text onto the sprites.
+        for sprite in sprite_list:
+            arcade.draw_text("answer", sprite.left, sprite.center_y, arcade.color.BLACK, font_size=12, width=int(sprite.right-sprite.left), align="center")
+
+
     def draw_toolbar(self):
-        arcade.draw_lrtb_rectangle_filled(0, self.width, self.height, self.height-100, arcade.color.WHITE)
+        # white bar (question)
+        arcade.draw_lrtb_rectangle_filled(self.width*0.15, self.width*0.85, self.height, self.height-100, arcade.color.WHITE)
+        arcade.draw_text("QUESTION", self.width*0.15, self.height-20, arcade.color.BLACK, font_size=14, width=int(self.width*0.85-self.width*0.15), align="center")
+        arcade.draw_text("This is a question?", self.width*0.15, self.height-40, arcade.color.BLACK, font_size=12, width=int(self.width*0.85-self.width*0.15), align="center")
+
+        # lives box (right side)
         arcade.draw_lrtb_rectangle_filled(0, self.width*0.15, self.height, self.height-100, (149, 249, 227))
-            
-    
+        arcade.draw_text("Lives", 0, self.height-20, arcade.color.BLACK, font_size=14, width=int(self.width*0.15), align="center")
+
+        # score box (left side)
+        arcade.draw_lrtb_rectangle_filled(self.width*0.85, self.width, self.height, self.height-100, (231, 200, 221))
+        arcade.draw_text("Score", self.width*0.85, self.height-20, arcade.color.BLACK, font_size=14, width=int(self.width-self.width*0.85), align="center")
+        
 
 if __name__ == "__main__":
     window = MyGame(width, height, title)
