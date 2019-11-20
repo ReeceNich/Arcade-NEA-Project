@@ -1,7 +1,7 @@
 import arcade
 import random
 
-# i am now developing on a windows machine
+# i am now developing on a windows machine. edit 2
 
 width = 800
 height = 1000
