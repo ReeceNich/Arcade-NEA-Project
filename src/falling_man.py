@@ -117,7 +117,7 @@ class MyGame(arcade.Window):
     def draw_text_on_incorrect_sprites(self, sprite_list):
         # draw the text onto the sprites.
         for sprite in sprite_list:
-            arcade.draw_text("answer", sprite.left, sprite.center_y, arcade.color.BLACK, font_size=12, width=int(sprite.right-sprite.left), align="center")
+            arcade.draw_text("answer", sprite.left, sprite.center_y, color=arcade.color.BLACK, font_size=12, width=int(sprite.right-sprite.left), align="center")
 
 
     def draw_toolbar(self):
