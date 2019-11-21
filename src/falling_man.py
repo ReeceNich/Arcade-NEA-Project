@@ -12,6 +12,23 @@ max_cloud_scaling = 0.2
 min_cloud_scaling = 0.05
 
 
+data = [{
+        'question': 'What is 10x10?',
+        'answer': '100',
+        'wrong_1': '20',
+        'wrong_2': '1000',
+        'wrong_3': '1010'
+    }, {
+        'question': 'What colour is ?',
+        'answer': '100',
+        'wrong_1': '20',
+        'wrong_2': '1000',
+        'wrong_3': '1010'
+    }
+
+]
+
+
 class Player(arcade.Sprite):
     def update(self):
         pass
