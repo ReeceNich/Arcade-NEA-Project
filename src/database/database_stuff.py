@@ -6,14 +6,6 @@ class Track():
         self.title = title
         self.plays = plays
 
-class DB():
-    tracks = []
-
-    def insert(self, track):
-        self.tracks.append(track)
-
-    def get_all(self):
-        return self.tracks
 
 class DB():
     def __init__(self, conn):
@@ -26,8 +18,7 @@ class DB():
     def setup(self):
         self.cursor.execute("""
         DROP TABLE IF EXISTS Tracks;
-        """
-        )
+        """)
         self.cursor.execute("""
         CREATE TABLE Tracks (title TEXT, plays INTEGER);
         """)
@@ -55,8 +46,6 @@ def example(conn):
 
     db.setup()
 
-    # for track in [Track(), Track(), Track()]:
-    #     db.insert(track)
     db.insert(Track("Happy Birthday", 10))
     db.insert(Track("auld lang syne", 12))
     db.insert(Track("Default Dance", 42069))
@@ -69,7 +58,7 @@ def sqlite_example():
     example(conn)
 
 def postgres_example():
-    conn = psycopg2.connect("dbname='database1' user=postgres password='password' host='localhost' port= '5432'")
+    conn = psycopg2.connect("dbname='database1' user=postgres password='password' host='localhost' port='5432'")
     example(conn)
 
 sqlite_example()
