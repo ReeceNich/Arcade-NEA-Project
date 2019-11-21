@@ -11,6 +11,24 @@ incorrect_scaling = 0.1
 max_cloud_scaling = 0.2
 min_cloud_scaling = 0.05
 
+
+data = [{
+        'question': 'What is 10x10?',
+        'answer': '100',
+        'wrong_1': '20',
+        'wrong_2': '1000',
+        'wrong_3': '1010'
+    }, {
+        'question': 'What colour is ?',
+        'answer': '100',
+        'wrong_1': '20',
+        'wrong_2': '1000',
+        'wrong_3': '1010'
+    }
+
+]
+
+
 class Player(arcade.Sprite):
     def update(self):
         pass
@@ -44,6 +62,7 @@ class MyGame(arcade.Window):
         self.player_list.append(player)
 
         self.incorrect_sprites_list = arcade.SpriteList()
+        self.correct_sprites_list = arcade.SpriteList()
         self.delta_time_elapsed = 0
         self.movement_speed = initial_movement_speed
 
@@ -60,7 +79,7 @@ class MyGame(arcade.Window):
         self.player_list.draw()
         self.incorrect_sprites_list.draw()
 
-        self.draw_text_on_incorrect_sprites(self.incorrect_sprites_list)
+        self.draw_text_on_sprites(self.incorrect_sprites_list)
 
         self.draw_toolbar()
 
@@ -72,7 +91,7 @@ class MyGame(arcade.Window):
 
     def on_update(self, delta_time):
         self.delta_time_elapsed += delta_time
-        self.movement_speed += 0.002
+        self.movement_speed += 0.001
         self.player_list.update()
         self.incorrect_sprites_list.update()
         self.cloud_sprites_list.update()
@@ -114,7 +133,7 @@ class MyGame(arcade.Window):
         self.cloud_sprites_list.append(cloud)
 
     
-    def draw_text_on_incorrect_sprites(self, sprite_list):
+    def draw_text_on_sprites(self, sprite_list):
         # draw the text onto the sprites.
         for sprite in sprite_list:
             arcade.draw_text("answer", sprite.left, sprite.center_y, color=arcade.color.BLACK, font_size=12, width=int(sprite.right-sprite.left), align="center")
