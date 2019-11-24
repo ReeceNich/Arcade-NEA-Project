@@ -75,6 +75,7 @@ class MyGame(arcade.Window):
 
         self.incorrect_sprites_list = arcade.SpriteList()
         self.correct_sprites_list = arcade.SpriteList()
+        self.incorrect_answers_list = []
         self.delta_time_elapsed = 0
         self.movement_speed = initial_movement_speed
 
@@ -104,7 +105,7 @@ class MyGame(arcade.Window):
             player.center_x = x
 
 
-    def on_update(self, delta_time):
+    def update(self, delta_time):
         self.delta_time_elapsed += delta_time
         self.movement_speed += 0.001
         self.player_list.update()
@@ -115,12 +116,18 @@ class MyGame(arcade.Window):
         self.cloud_sprites_list.update()
         
         # creates more sprites if there are not enough.
-        if self.delta_time_elapsed > 2:
+        if self.delta_time_elapsed > 1:
             if random.randrange(0, 3) == 0:
                 print("Create correct sprite")
                 self.create_correct_sprite()
             else:
                 print("Creat incorrect sprite")
+                # Need to generate an incorrect answer, append to list of the wrong answers (should mirror index of
+                # incorrect sprites on screen), then draw sprite.
+
+                wrong_answers = [self.current_q_and_a['wrong_1'], self.current_q_and_a['wrong_2'], self.current_q_and_a['wrong_3']]
+                wrong_text = wrong_answers[random.randrange(0, 2)]
+                self.incorrect_answers_list.append(wrong_text)
                 self.create_incorrect_sprite()
 
             self.create_cloud_sprite()
@@ -131,6 +138,7 @@ class MyGame(arcade.Window):
             sprite.center_y += self.movement_speed
 
             if sprite.center_y > (self.height + 50):
+                self.incorrect_answers_list.pop(0)
                 sprite.remove_from_sprite_lists()
         
         for sprite in self.correct_sprites_list:
@@ -178,19 +186,13 @@ class MyGame(arcade.Window):
 
     def draw_text_on_incorrect_sprites(self, sprite_list):
         # draw the text onto the sprites.
+        counter = 0
+        
         for sprite in sprite_list:
-            try:
-                if sprite.already_chosen_answer:
-                    arcade.draw_text(wrong_text, sprite.left, sprite.center_y, color=arcade.color.BLACK, font_size=12, width=int(sprite.right-sprite.left), align="center")
-                else:
-                    wrong_answers = [self.current_q_and_a['wrong_1'], self.current_q_and_a['wrong_2'], self.current_q_and_a['wrong_3']]
-                    wrong_text = wrong_answers[random.randrange(0, 2)]
-                    sprite.already_chosen_answer = True
-            except:
-                #print("TRY FAILED")
-                sprite.already_chosen_answer = True
-            
-            #print(f"INCORRECT!: {wrong_answers[random.randrange(0, 2)]}")
+            wrong_text = self.incorrect_answers_list[counter]
+            arcade.draw_text(wrong_text, sprite.left, sprite.center_y, color=arcade.color.BLACK, font_size=12, width=int(sprite.right-sprite.left), align="center")
+            counter += 1
+
 
     def draw_toolbar(self):
         # white bar (question)
