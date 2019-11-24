@@ -159,7 +159,17 @@ class MyGame(arcade.Window):
 
 
         # check for collisions.
-        #answers_hit_list = arcade.check_for_collision_with_list(self.p)
+        incorrect_answers_hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.incorrect_sprites_list)
+        correct_answers_hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.correct_sprites_list)
+        if incorrect_answers_hit_list:
+            for incorrect in incorrect_answers_hit_list:
+                incorrect.remove_from_sprite_lists()
+                self.player_lives -= 1
+                
+        if correct_answers_hit_list:
+            for correct in correct_answers_hit_list:
+                correct.remove_from_sprite_lists()
+                self.player_score += 5
 
 
     def create_incorrect_sprite(self):
