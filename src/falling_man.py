@@ -45,11 +45,13 @@ class Player(arcade.Sprite):
 class IncorrectSprite(arcade.Sprite):
     def __init__(self, img, scale):
         super().__init__(img, scale)
+        self.text = "incorrect"
 
 
 class CorrectSprite(arcade.Sprite):
     def __init__(self, img, scale):
         super().__init__(img, scale)
+        self.text = "correct"
 
 
 class CloudSprite(arcade.Sprite):
@@ -94,8 +96,8 @@ class MyGame(arcade.Window):
         self.correct_sprites_list.draw()
         self.incorrect_sprites_list.draw()
 
-        self.draw_text_on_correct_sprites(self.correct_sprites_list)
-        self.draw_text_on_incorrect_sprites(self.incorrect_sprites_list)
+        self.draw_text_on_sprites(self.correct_sprites_list)
+        self.draw_text_on_sprites(self.incorrect_sprites_list)
 
         self.draw_toolbar()
 
@@ -161,6 +163,7 @@ class MyGame(arcade.Window):
         # check for collisions.
         incorrect_answers_hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.incorrect_sprites_list)
         correct_answers_hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.correct_sprites_list)
+
         if incorrect_answers_hit_list:
             for incorrect in incorrect_answers_hit_list:
                 incorrect.remove_from_sprite_lists()
@@ -193,7 +196,12 @@ class MyGame(arcade.Window):
         cloud.center_y = random.randrange(-100, -50)
         self.cloud_sprites_list.append(cloud)
 
-    
+
+    def draw_text_on_sprites(self, sprite_list):
+        for sprite in sprite_list:
+            arcade.draw_text(sprite.text, sprite.left, sprite.center_y, arcade.color.BLACK)
+
+    """
     def draw_text_on_correct_sprites(self, sprite_list):
         # draw the text onto the sprites.
         counter = 0
@@ -210,9 +218,11 @@ class MyGame(arcade.Window):
             wrong_text = self.incorrect_answers_list[counter]
             arcade.draw_text(wrong_text, sprite.left, sprite.center_y, color=arcade.color.BLACK, font_size=answer_font_size, width=int(sprite.right-sprite.left), align="center")
             counter += 1
+    """
 
 
     def draw_toolbar(self):
+        print("draw toolbar")
         # white bar (question)
         arcade.draw_lrtb_rectangle_filled(self.width*0.15, self.width*0.85, self.height, self.height-100, arcade.color.WHITE)
         arcade.draw_text("QUESTION", self.width*0.15, self.height-20, arcade.color.BLACK, font_size=14, width=int(self.width*0.85-self.width*0.15), align="center")
