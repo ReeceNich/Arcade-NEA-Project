@@ -38,8 +38,8 @@ data = [
 
 
 class Player(arcade.Sprite):
-    def update(self):
-        pass
+    def __init__(self, img, scale):
+        super().__init__(img, scale)
 
 
 class IncorrectSprite(arcade.Sprite):
@@ -67,12 +67,10 @@ class MyGame(arcade.Window):
 
     def setup(self):
         # create sprites etc for a my game
-        self.player_list = arcade.SpriteList()
-        player = Player("images/player_01.png", player_scaling)
-        player.center_x = self.width / 2
-        # player.center_y = self.height - 2
-        player.top = self.height - 110
-        self.player_list.append(player)
+        self.player_sprite = Player("images/player_01.png", player_scaling)
+        self.player_sprite.center_x = self.width / 2
+        # self.player_sprite.center_y = self.height - 2
+        self.player_sprite.top = self.height - 110
 
         self.incorrect_sprites_list = arcade.SpriteList()
         self.correct_sprites_list = arcade.SpriteList()
@@ -91,7 +89,7 @@ class MyGame(arcade.Window):
     def on_draw(self):
         arcade.start_render()
         self.cloud_sprites_list.draw()
-        self.player_list.draw()
+        self.player_sprite.draw()
 
         self.correct_sprites_list.draw()
         self.incorrect_sprites_list.draw()
@@ -103,14 +101,13 @@ class MyGame(arcade.Window):
 
     
     def on_mouse_motion(self, x, y, dy, dx):
-        for player in self.player_list:
-            player.center_x = x
+        self.player_sprite.center_x = x
 
 
     def update(self, delta_time):
         self.delta_time_elapsed += delta_time
         self.movement_speed += 0.001
-        self.player_list.update()
+        self.player_sprite.update()
 
         self.correct_sprites_list.update()
         self.incorrect_sprites_list.update()
@@ -153,12 +150,16 @@ class MyGame(arcade.Window):
                 sprite.remove_from_sprite_lists()
 
 
-        # speeds up the clouds.
+        # speeds up the clouds. if off screen -> remove the sprite.
         for cloud in self.cloud_sprites_list:
             cloud.center_y += self.movement_speed / 2
 
             if cloud.center_y > (self.height + 50):
                 cloud.remove_from_sprite_lists()
+
+
+        # check for collisions.
+        #answers_hit_list = arcade.check_for_collision_with_list(self.p)
 
 
     def create_incorrect_sprite(self):
