@@ -76,8 +76,7 @@ class MyGame(arcade.Window):
 
         self.incorrect_sprites_list = arcade.SpriteList()
         self.correct_sprites_list = arcade.SpriteList()
-        self.incorrect_answers_list = []
-        self.correct_answers_list = []
+
         self.delta_time_elapsed = 0
         self.movement_speed = initial_movement_speed
 
@@ -120,8 +119,7 @@ class MyGame(arcade.Window):
         if self.delta_time_elapsed > 1:
             if random.randrange(0, 3) == 0:
                 print("Create correct sprite")
-                self.correct_answers_list.append(self.current_q_and_a['answer'])
-                self.create_correct_sprite()
+                self.create_correct_sprite(self.current_q_and_a['answer'])
                 
             else:
                 print("Creat incorrect sprite")
@@ -130,8 +128,7 @@ class MyGame(arcade.Window):
 
                 wrong_answers = [self.current_q_and_a['wrong_1'], self.current_q_and_a['wrong_2'], self.current_q_and_a['wrong_3']]
                 wrong_text = wrong_answers[random.randrange(0, 2)]
-                self.incorrect_answers_list.append(wrong_text)
-                self.create_incorrect_sprite()
+                self.create_incorrect_sprite(wrong_text)
 
             self.create_cloud_sprite()
             self.delta_time_elapsed = 0
@@ -141,14 +138,12 @@ class MyGame(arcade.Window):
             sprite.center_y += self.movement_speed
 
             if sprite.center_y > (self.height + 50):
-                self.incorrect_answers_list.pop(0)
                 sprite.remove_from_sprite_lists()
         
         for sprite in self.correct_sprites_list:
             sprite.center_y += self.movement_speed
 
             if sprite.center_y > (self.height + 50):
-                self.correct_answers_list.pop(0)
                 sprite.remove_from_sprite_lists()
 
 
@@ -175,17 +170,19 @@ class MyGame(arcade.Window):
                 self.player_score += 5
 
 
-    def create_incorrect_sprite(self):
+    def create_incorrect_sprite(self, incorrect_answer_text):
         incorrect = IncorrectSprite("images/incorrect_01.png", incorrect_scaling)
         incorrect.center_x = random.randrange(self.width)
         incorrect.center_y = random.randrange(-100, -50)
+        incorrect.text = incorrect_answer_text
         self.incorrect_sprites_list.append(incorrect)
         
 
-    def create_correct_sprite(self):
+    def create_correct_sprite(self, correct_answer_text):
         correct = CorrectSprite("images/correct_01.png", correct_scaling)
         correct.center_x = random.randrange(self.width)
         correct.center_y = random.randrange(-100, -50)
+        correct.text = correct_answer_text
         self.correct_sprites_list.append(correct)
 
     
@@ -199,30 +196,10 @@ class MyGame(arcade.Window):
 
     def draw_text_on_sprites(self, sprite_list):
         for sprite in sprite_list:
-            arcade.draw_text(sprite.text, sprite.left, sprite.center_y, arcade.color.BLACK)
-
-    """
-    def draw_text_on_correct_sprites(self, sprite_list):
-        # draw the text onto the sprites.
-        counter = 0
-        for sprite in sprite_list:
-            correct_text = self.correct_answers_list[counter]
-            arcade.draw_text(correct_text, sprite.left, sprite.center_y, color=arcade.color.BLACK, font_size=answer_font_size, width=int(sprite.right-sprite.left), align="center")
-            #print(f"CORRECT!: {self.current_q_and_a['answer']}")
-
-    def draw_text_on_incorrect_sprites(self, sprite_list):
-        # draw the text onto the sprites.
-        counter = 0
-        
-        for sprite in sprite_list:
-            wrong_text = self.incorrect_answers_list[counter]
-            arcade.draw_text(wrong_text, sprite.left, sprite.center_y, color=arcade.color.BLACK, font_size=answer_font_size, width=int(sprite.right-sprite.left), align="center")
-            counter += 1
-    """
+            arcade.draw_text(sprite.text, sprite.left, sprite.center_y, color=arcade.color.BLACK, font_size=answer_font_size, width=int(sprite.right-sprite.left), align="center", anchor_y="center")
 
 
     def draw_toolbar(self):
-        print("draw toolbar")
         # white bar (question)
         arcade.draw_lrtb_rectangle_filled(self.width*0.15, self.width*0.85, self.height, self.height-100, arcade.color.WHITE)
         arcade.draw_text("QUESTION", self.width*0.15, self.height-20, arcade.color.BLACK, font_size=14, width=int(self.width*0.85-self.width*0.15), align="center")
