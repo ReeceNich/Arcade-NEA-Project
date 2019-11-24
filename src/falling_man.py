@@ -11,6 +11,7 @@ incorrect_scaling = 0.1
 correct_scaling = 0.1
 max_cloud_scaling = 0.2
 min_cloud_scaling = 0.05
+answer_font_size = 12
 
 
 data = [
@@ -76,6 +77,7 @@ class MyGame(arcade.Window):
         self.incorrect_sprites_list = arcade.SpriteList()
         self.correct_sprites_list = arcade.SpriteList()
         self.incorrect_answers_list = []
+        self.correct_answers_list = []
         self.delta_time_elapsed = 0
         self.movement_speed = initial_movement_speed
 
@@ -119,7 +121,9 @@ class MyGame(arcade.Window):
         if self.delta_time_elapsed > 1:
             if random.randrange(0, 3) == 0:
                 print("Create correct sprite")
+                self.correct_answers_list.append(self.current_q_and_a['answer'])
                 self.create_correct_sprite()
+                
             else:
                 print("Creat incorrect sprite")
                 # Need to generate an incorrect answer, append to list of the wrong answers (should mirror index of
@@ -145,6 +149,7 @@ class MyGame(arcade.Window):
             sprite.center_y += self.movement_speed
 
             if sprite.center_y > (self.height + 50):
+                self.correct_answers_list.pop(0)
                 sprite.remove_from_sprite_lists()
 
 
@@ -180,8 +185,10 @@ class MyGame(arcade.Window):
     
     def draw_text_on_correct_sprites(self, sprite_list):
         # draw the text onto the sprites.
+        counter = 0
         for sprite in sprite_list:
-            arcade.draw_text(self.current_q_and_a['answer'], sprite.left, sprite.center_y, color=arcade.color.BLACK, font_size=12, width=int(sprite.right-sprite.left), align="center")
+            correct_text = self.correct_answers_list[counter]
+            arcade.draw_text(correct_text, sprite.left, sprite.center_y, color=arcade.color.BLACK, font_size=answer_font_size, width=int(sprite.right-sprite.left), align="center")
             #print(f"CORRECT!: {self.current_q_and_a['answer']}")
 
     def draw_text_on_incorrect_sprites(self, sprite_list):
@@ -190,7 +197,7 @@ class MyGame(arcade.Window):
         
         for sprite in sprite_list:
             wrong_text = self.incorrect_answers_list[counter]
-            arcade.draw_text(wrong_text, sprite.left, sprite.center_y, color=arcade.color.BLACK, font_size=12, width=int(sprite.right-sprite.left), align="center")
+            arcade.draw_text(wrong_text, sprite.left, sprite.center_y, color=arcade.color.BLACK, font_size=answer_font_size, width=int(sprite.right-sprite.left), align="center")
             counter += 1
 
 
