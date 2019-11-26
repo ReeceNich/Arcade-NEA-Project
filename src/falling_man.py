@@ -16,23 +16,26 @@ answer_font_size = 12
 
 data = [
     {
-        'question': 'What is 10x10?',
-        'answer': '100',
-        'wrong_1': '20',
-        'wrong_2': '1000',
-        'wrong_3': '1010'
+        'question': 'What is 12x12?',
+        'answer': '144',
+        'wrong_1': '120',
+        'wrong_2': '124',
+        'wrong_3': '121',
+        'difficulty': 3
     }, {
         'question': 'What colour is the sky?',
         'answer': 'Blue',
         'wrong_1': 'Red',
         'wrong_2': 'Green',
-        'wrong_3': 'Yellow'
+        'wrong_3': 'Yellow',
+        'difficulty': 1
     }, {
         'question': 'Who is the Queen?',
         'answer': 'Elizabeth',
         'wrong_1': 'Victoria',
         'wrong_2': 'Louis',
-        'wrong_3': 'Jane'
+        'wrong_3': 'Jane',
+        'difficulty': 2
     }
 ]
 
@@ -83,7 +86,8 @@ class MyGame(arcade.Window):
         self.cloud_sprites_list = arcade.SpriteList()
 
         self.player_lives = 3
-        self.current_q_and_a = data[0]
+        self.current_q_and_a_pointer = 0
+        self.current_q_and_a = data[self.current_q_and_a_pointer]
         self.player_score = 0
 
 
@@ -167,7 +171,8 @@ class MyGame(arcade.Window):
         if correct_answers_hit_list:
             for correct in correct_answers_hit_list:
                 correct.remove_from_sprite_lists()
-                self.player_score += 5
+                self.player_score += int(self.current_q_and_a['difficulty'])
+                self.update_next_question()
 
 
     def create_incorrect_sprite(self, incorrect_answer_text):
@@ -202,8 +207,9 @@ class MyGame(arcade.Window):
     def draw_toolbar(self):
         # white bar (question)
         arcade.draw_lrtb_rectangle_filled(self.width*0.15, self.width*0.85, self.height, self.height-100, arcade.color.WHITE)
-        arcade.draw_text("QUESTION", self.width*0.15, self.height-20, arcade.color.BLACK, font_size=14, width=int(self.width*0.85-self.width*0.15), align="center")
-        arcade.draw_text(self.current_q_and_a['question'], self.width*0.15, self.height-50, arcade.color.BLACK, font_size=12, width=int(self.width*0.85-self.width*0.15), align="center")
+        arcade.draw_text("Question", self.width*0.15, self.height-22, arcade.color.BLACK, font_size=16, width=int(self.width*0.85-self.width*0.15), align="center")
+        arcade.draw_text(self.current_q_and_a['question'], self.width*0.15, self.height-50, arcade.color.BLACK, font_size=14, width=int(self.width*0.85-self.width*0.15), align="center")
+        arcade.draw_text(f"Difficulty: {self.current_q_and_a['difficulty']}", self.width*0.15, self.height-95, arcade.color.BLACK, font_size=12, width=int(self.width*0.85-self.width*0.15), align="center")
 
         # lives box (right side)
         arcade.draw_lrtb_rectangle_filled(0, self.width*0.15, self.height, self.height-100, (149, 249, 227))
@@ -214,6 +220,11 @@ class MyGame(arcade.Window):
         arcade.draw_lrtb_rectangle_filled(self.width*0.85, self.width, self.height, self.height-100, (231, 200, 221))
         arcade.draw_text("Score", self.width*0.85, self.height-20, arcade.color.BLACK, font_size=14, width=int(self.width-self.width*0.85), align="center")
         arcade.draw_text(str(self.player_score), self.width*0.85, self.height-50, arcade.color.BLACK, font_size=14, width=int(self.width-self.width*0.85), align="center")
+    
+
+    def update_next_question(self):
+        self.current_q_and_a_pointer += 1
+        self.current_q_and_a = data[self.current_q_and_a_pointer]
 
 
 if __name__ == "__main__":
