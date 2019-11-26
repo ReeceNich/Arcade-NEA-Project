@@ -11,18 +11,51 @@ class DB:
         self.conn.close()
 
 
-    def setup(self):
+    def drop_all(self):
         self.cursor.execute("""
         DROP TABLE IF EXISTS Questions;
         """)
         self.cursor.execute("""
-        CREATE TABLE Questions (id INTEGER PRIMARY KEY, question TEXT, answer TEXT, wrong_1 TEXT, wrong_2 TEXT, wrong_3 TEXT, subject TEXT, difficulty INTEGER);
+        DROP TABLE IF EXISTS Users;
         """)
         self.conn.commit()
 
 
+    def setup(self):
+        self.drop_all()
+
+        self.cursor.execute("""
+        CREATE TABLE Questions (id SERIAL PRIMARY KEY, question TEXT, answer TEXT, wrong_1 TEXT, wrong_2 TEXT, wrong_3 TEXT, subject TEXT, difficulty INTEGER);
+        """)
+        self.cursor.execute("""
+        CREATE TABLE Users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, passcode INTEGER NOT NULL)
+        """)
+        
+        self.conn.commit()
+
+    
+    def insert_question(self, data):
+        self.cursor.execute(f"""
+        INSERT INTO Questions (question, answer, wrong_1, wrong_2, wrong_3, subject, difficulty)
+        VALUES ('{data.question}', '{data.answer}', '{data.wrong_1}', '{data.wrong_2}', '{data.wrong_3}', '{data.subject}', '{data.difficulty}')
+        """)
+        self.conn.commit()
+
+    
+    def fetch_all(self):
+        self.cursor.execute("""
+        SELECT * FROM Questions
+        """)
+        question = []
+        for row in self.cursor:
+            question.append(Question(q_id=row[0], question=row[1], answer=row[2], wrong_1=row[3],
+                                     wrong_2=row[4], wrong_3=row[5], subject=row[6], difficulty=row[7]))
+        return question
+
+
 class Question:
-    def __init__(self, question, answer, wrong_1, wrong_2, wrong_3, subject, difficulty):
+    def __init__(self, question, answer, wrong_1, wrong_2, wrong_3, subject, difficulty, q_id=None):
+        self.id = q_id
         self.question = question
         self.answer = answer
         self.wrong_1 = wrong_1
@@ -32,18 +65,23 @@ class Question:
         self.difficulty = difficulty
 
 
-def example(conn):
+def postgres_example():
+    conn = psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'")
     db = DB(conn)
 
     db.setup()
+    print("setup")
 
-    #db.insert(Track("Happy Birthday", 10))
-    
-    #tracks = db.query_all_tracks()
-    #for track in tracks:
-    #    print(f"{track.title} played has been played {track.plays} times")
+    q1 = Question('What is 12x12?', '144', '121', '141', '240', 'Maths', 2)
+    q2 = Question('What does CPU stand for?', 'Central Processing Unit', 'Central Power Unit', 'Computing Power Unit', 'Computer Programming Unit', 'Comp Sci', 1)
+    q3 = Question('How do you find the gradient of a polynomial equation?', 'Differentiate', 'Integrate', 'Simultaneous Equations', 'Square Root', 'Maths', 3)
+    db.insert_question(q1)
+    db.insert_question(q2)
+    db.insert_question(q3)
+
+    results = db.fetch_all()
+    print(results[0].question, results[0].answer)
 
 
-def postgres_example():
-    conn = psycopg2.connect("dbname='database1' user=postgres password='password' host='localhost' port='5432'")
-    example(conn)
+if __name__ == "__main__":
+    postgres_example()
