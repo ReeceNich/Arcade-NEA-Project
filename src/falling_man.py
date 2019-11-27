@@ -49,13 +49,13 @@ class Player(arcade.Sprite):
 
 
 class IncorrectSprite(arcade.Sprite):
-    def __init__(self, img, scale):
+    def __init__(self, img, scale, incorrect_answer_text):
         super().__init__(img, scale)
         self.text = "incorrect"
 
 
 class CorrectSprite(arcade.Sprite):
-    def __init__(self, img, scale):
+    def __init__(self, img, scale, correct_answer_text):
         super().__init__(img, scale)
         self.text = "correct"
 
@@ -179,18 +179,16 @@ class MyGame(arcade.Window):
 
 
     def create_incorrect_sprite(self, incorrect_answer_text):
-        incorrect = IncorrectSprite("images/incorrect_01.png", incorrect_scaling)
+        incorrect = IncorrectSprite("images/incorrect_01.png", incorrect_scaling, incorrect_answer_text)
         incorrect.center_x = random.randrange(self.width)
         incorrect.center_y = random.randrange(-100, -50)
-        incorrect.text = incorrect_answer_text
         self.incorrect_sprites_list.append(incorrect)
         
 
     def create_correct_sprite(self, correct_answer_text):
-        correct = CorrectSprite("images/correct_01.png", correct_scaling)
+        correct = CorrectSprite("images/correct_01.png", correct_scaling, correct_answer_text)
         correct.center_x = random.randrange(self.width)
         correct.center_y = random.randrange(-100, -50)
-        correct.text = correct_answer_text
         self.correct_sprites_list.append(correct)
 
     
