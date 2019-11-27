@@ -1,5 +1,6 @@
 import arcade
 import random
+from database_manager import *
 
 
 width = 800
@@ -14,30 +15,32 @@ min_cloud_scaling = 0.05
 answer_font_size = 12
 
 
-data = [
-    {
-        'question': 'What is 12x12?',
-        'answer': '144',
-        'wrong_1': '120',
-        'wrong_2': '124',
-        'wrong_3': '121',
-        'difficulty': 3
-    }, {
-        'question': 'What colour is the sky?',
-        'answer': 'Blue',
-        'wrong_1': 'Red',
-        'wrong_2': 'Green',
-        'wrong_3': 'Yellow',
-        'difficulty': 1
-    }, {
-        'question': 'Who is the Queen?',
-        'answer': 'Elizabeth',
-        'wrong_1': 'Victoria',
-        'wrong_2': 'Louis',
-        'wrong_3': 'Jane',
-        'difficulty': 2
-    }
-]
+# data = [
+#     {
+#         'question': 'What is 12x12?',
+#         'answer': '144',
+#         'wrong_1': '120',
+#         'wrong_2': '124',
+#         'wrong_3': '121',
+#         'difficulty': 3
+#     }, {
+#         'question': 'What colour is the sky?',
+#         'answer': 'Blue',
+#         'wrong_1': 'Red',
+#         'wrong_2': 'Green',
+#         'wrong_3': 'Yellow',
+#         'difficulty': 1
+#     }, {
+#         'question': 'Who is the Queen?',
+#         'answer': 'Elizabeth',
+#         'wrong_1': 'Victoria',
+#         'wrong_2': 'Louis',
+#         'wrong_3': 'Jane',
+#         'difficulty': 2
+#     }
+# ]
+db = DB(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
+data = db.fetch_all()
 
 
 class Player(arcade.Sprite):
@@ -123,14 +126,14 @@ class MyGame(arcade.Window):
         if self.delta_time_elapsed > 1:
             if random.randrange(0, 3) == 0:
                 print("Create correct sprite")
-                self.create_correct_sprite(self.current_q_and_a['answer'])
+                self.create_correct_sprite(self.current_q_and_a.answer)
                 
             else:
                 print("Creat incorrect sprite")
                 # Need to generate an incorrect answer, append to list of the wrong answers (should mirror index of
                 # incorrect sprites on screen), then draw sprite.
 
-                wrong_answers = [self.current_q_and_a['wrong_1'], self.current_q_and_a['wrong_2'], self.current_q_and_a['wrong_3']]
+                wrong_answers = [self.current_q_and_a.wrong_1, self.current_q_and_a.wrong_2, self.current_q_and_a.wrong_3]
                 wrong_text = wrong_answers[random.randrange(0, 2)]
                 self.create_incorrect_sprite(wrong_text)
 
@@ -171,7 +174,7 @@ class MyGame(arcade.Window):
         if correct_answers_hit_list:
             for correct in correct_answers_hit_list:
                 correct.remove_from_sprite_lists()
-                self.player_score += int(self.current_q_and_a['difficulty'])
+                self.player_score += int(self.current_q_and_a.difficulty)
                 self.update_next_question()
 
 
@@ -208,8 +211,8 @@ class MyGame(arcade.Window):
         # white bar (question)
         arcade.draw_lrtb_rectangle_filled(self.width*0.15, self.width*0.85, self.height, self.height-100, arcade.color.WHITE)
         arcade.draw_text("Question", self.width*0.15, self.height-22, arcade.color.BLACK, font_size=16, width=int(self.width*0.85-self.width*0.15), align="center")
-        arcade.draw_text(self.current_q_and_a['question'], self.width*0.15, self.height-50, arcade.color.BLACK, font_size=14, width=int(self.width*0.85-self.width*0.15), align="center")
-        arcade.draw_text(f"Difficulty: {self.current_q_and_a['difficulty']}", self.width*0.15, self.height-95, arcade.color.BLACK, font_size=12, width=int(self.width*0.85-self.width*0.15), align="center")
+        arcade.draw_text(self.current_q_and_a.question, self.width*0.15, self.height-50, arcade.color.BLACK, font_size=14, width=int(self.width*0.85-self.width*0.15), align="center")
+        arcade.draw_text(f"Difficulty: {self.current_q_and_a.difficulty}", self.width*0.15, self.height-95, arcade.color.BLACK, font_size=12, width=int(self.width*0.85-self.width*0.15), align="center")
 
         # lives box (right side)
         arcade.draw_lrtb_rectangle_filled(0, self.width*0.15, self.height, self.height-100, (149, 249, 227))
