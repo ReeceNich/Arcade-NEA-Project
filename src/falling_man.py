@@ -51,13 +51,13 @@ class Player(arcade.Sprite):
 class IncorrectSprite(arcade.Sprite):
     def __init__(self, img, scale, incorrect_answer_text):
         super().__init__(img, scale)
-        self.text = "incorrect"
+        self.text = incorrect_answer_text
 
 
 class CorrectSprite(arcade.Sprite):
     def __init__(self, img, scale, correct_answer_text):
         super().__init__(img, scale)
-        self.text = "correct"
+        self.text = correct_answer_text
 
 
 class CloudSprite(arcade.Sprite):
@@ -173,9 +173,13 @@ class MyGame(arcade.Window):
                 
         if correct_answers_hit_list:
             for correct in correct_answers_hit_list:
-                correct.remove_from_sprite_lists()
-                self.player_score += int(self.current_q_and_a.difficulty)
-                self.update_next_question()
+                if correct.text == self.current_q_and_a.answer:
+                    correct.remove_from_sprite_lists()
+                    self.player_score += int(self.current_q_and_a.difficulty)
+                    self.update_next_question()
+                else:
+                    correct.remove_from_sprite_lists()
+                    self.player_lives -= 1
 
 
     def create_incorrect_sprite(self, incorrect_answer_text):
