@@ -49,15 +49,17 @@ class Player(arcade.Sprite):
 
 
 class IncorrectSprite(arcade.Sprite):
-    def __init__(self, img, scale, incorrect_answer_text):
+    def __init__(self, img, scale, question_id, incorrect_answer_text):
         super().__init__(img, scale)
-        self.text = incorrect_answer_text
+        self.question_id = question_id
+        self.text = incorrect_answer_text.replace(' ', '\n')
 
 
 class CorrectSprite(arcade.Sprite):
-    def __init__(self, img, scale, correct_answer_text):
+    def __init__(self, img, scale, question_id, correct_answer_text):
         super().__init__(img, scale)
-        self.text = correct_answer_text
+        self.question_id = question_id
+        self.text = correct_answer_text.replace(' ', '\n')
 
 
 class CloudSprite(arcade.Sprite):
@@ -126,16 +128,16 @@ class MyGame(arcade.Window):
         if self.delta_time_elapsed > 1:
             if random.randrange(0, 3) == 0:
                 print("Create correct sprite")
-                self.create_correct_sprite(self.current_q_and_a.answer)
+                self.create_correct_sprite(self.current_q_and_a.id, self.current_q_and_a.answer)
                 
             else:
-                print("Creat incorrect sprite")
+                print("Create incorrect sprite")
                 # Need to generate an incorrect answer, append to list of the wrong answers (should mirror index of
                 # incorrect sprites on screen), then draw sprite.
 
                 wrong_answers = [self.current_q_and_a.wrong_1, self.current_q_and_a.wrong_2, self.current_q_and_a.wrong_3]
                 wrong_text = wrong_answers[random.randrange(0, 2)]
-                self.create_incorrect_sprite(wrong_text)
+                self.create_incorrect_sprite(self.current_q_and_a.id, wrong_text)
 
             self.create_cloud_sprite()
             self.delta_time_elapsed = 0
@@ -173,7 +175,8 @@ class MyGame(arcade.Window):
                 
         if correct_answers_hit_list:
             for correct in correct_answers_hit_list:
-                if correct.text == self.current_q_and_a.answer:
+                print(f"{correct.question_id}, {self.current_q_and_a.id}")
+                if correct.question_id == self.current_q_and_a.id:
                     correct.remove_from_sprite_lists()
                     self.player_score += int(self.current_q_and_a.difficulty)
                     self.update_next_question()
@@ -182,15 +185,15 @@ class MyGame(arcade.Window):
                     self.player_lives -= 1
 
 
-    def create_incorrect_sprite(self, incorrect_answer_text):
-        incorrect = IncorrectSprite("images/incorrect_01.png", incorrect_scaling, incorrect_answer_text)
+    def create_incorrect_sprite(self, question_id, incorrect_answer_text):
+        incorrect = IncorrectSprite("images/incorrect_01.png", incorrect_scaling, question_id, incorrect_answer_text)
         incorrect.center_x = random.randrange(self.width)
         incorrect.center_y = random.randrange(-100, -50)
         self.incorrect_sprites_list.append(incorrect)
         
 
-    def create_correct_sprite(self, correct_answer_text):
-        correct = CorrectSprite("images/correct_01.png", correct_scaling, correct_answer_text)
+    def create_correct_sprite(self, question_id, correct_answer_text):
+        correct = CorrectSprite("images/correct_01.png", correct_scaling, question_id, correct_answer_text)
         correct.center_x = random.randrange(self.width)
         correct.center_y = random.randrange(-100, -50)
         self.correct_sprites_list.append(correct)
