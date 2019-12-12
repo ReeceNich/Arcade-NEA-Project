@@ -69,15 +69,14 @@ def postgres_example():
     conn = psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'")
     db = DB(conn)
 
-    # db.setup()
-    # print("setup")
+    db.setup()
 
-    # q1 = Question('What is 12x12?', '144', '121', '141', '240', 'Maths', 2)
-    # q2 = Question('What does CPU stand for?', 'Central Processing Unit', 'Central Power Unit', 'Computing Power Unit', 'Computer Programming Unit', 'Comp Sci', 1)
-    # q3 = Question('How do you find the gradient of a polynomial equation?', 'Differentiate', 'Integrate', 'Simultaneous Equations', 'Square Root', 'Maths', 3)
-    # db.insert_question(q1)
-    # db.insert_question(q2)
-    # db.insert_question(q3)
+    q1 = Question('What is 12x12?', '144', '121', '141', '240', 'Maths', 2)
+    q2 = Question('What does CPU stand for?', 'Central Processing Unit', 'Central Power Unit', 'Computing Power Unit', 'Computer Programming Unit', 'Comp Sci', 1)
+    q3 = Question('How do you find the gradient of a polynomial equation?', 'Differentiate', 'Integrate', 'Simultaneous Equations', 'Square Root', 'Maths', 3)
+    db.insert_question(q1)
+    db.insert_question(q2)
+    db.insert_question(q3)
 
     results = db.fetch_all()
     print(results[0].question, results[0].answer)
