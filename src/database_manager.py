@@ -30,7 +30,10 @@ class DB:
         self.cursor.execute("""
         CREATE TABLE Users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, passcode INTEGER NOT NULL)
         """)
-        
+        # self.cursor.execute("""
+        # CREATE TABLE 
+        # """)
+
         self.conn.commit()
 
     
