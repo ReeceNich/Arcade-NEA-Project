@@ -14,31 +14,12 @@ max_cloud_scaling = 0.2
 min_cloud_scaling = 0.05
 answer_font_size = 12
 
+STATE_INSTRUCTIONS = 0
+STATE_GAME_RUNNNG = 1
+STATE_GAME_PAUSED = 2
+STATE_GAME_OVER = 3
 
-# data = [
-#     {
-#         'question': 'What is 12x12?',
-#         'answer': '144',
-#         'wrong_1': '120',
-#         'wrong_2': '124',
-#         'wrong_3': '121',
-#         'difficulty': 3
-#     }, {
-#         'question': 'What colour is the sky?',
-#         'answer': 'Blue',
-#         'wrong_1': 'Red',
-#         'wrong_2': 'Green',
-#         'wrong_3': 'Yellow',
-#         'difficulty': 1
-#     }, {
-#         'question': 'Who is the Queen?',
-#         'answer': 'Elizabeth',
-#         'wrong_1': 'Victoria',
-#         'wrong_2': 'Louis',
-#         'wrong_3': 'Jane',
-#         'difficulty': 2
-#     }
-# ]
+
 db = DB(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
 data = db.fetch_all()
 
@@ -74,6 +55,8 @@ class MyGame(arcade.Window):
         self.height = height
         arcade.set_background_color(arcade.color.BABY_BLUE)
 
+        self.current_state = STATE_GAME_RUNNNG
+
 
     def setup(self):
         # create sprites etc for a my game
@@ -98,6 +81,23 @@ class MyGame(arcade.Window):
 
     def on_draw(self):
         arcade.start_render()
+        
+        if self.current_state == STATE_INSTRUCTIONS:
+            pass
+
+        elif self.current_state == STATE_GAME_RUNNNG:
+            self.draw_game_running()
+        
+        elif self.current_state == STATE_GAME_PAUSED:
+            pass
+            
+        elif self.current_state == STATE_GAME_OVER:
+            pass
+        else:
+            # default to game over here.
+            pass
+    
+    def draw_game_running(self):
         self.cloud_sprites_list.draw()
         self.player_sprite.draw()
 
@@ -111,78 +111,87 @@ class MyGame(arcade.Window):
 
     
     def on_mouse_motion(self, x, y, dy, dx):
-        self.player_sprite.center_x = x
+        # only move the character if the game is 'running'.
+        if self.current_state == STATE_GAME_RUNNNG:
+            self.player_sprite.center_x = x
+
+        else:
+            pass
 
 
     def update(self, delta_time):
-        self.delta_time_elapsed += delta_time
-        self.movement_speed += 0.001
-        self.player_sprite.update()
+        if self.current_state == STATE_GAME_RUNNNG:
+            self.delta_time_elapsed += delta_time
+            self.movement_speed += 0.001
+            self.player_sprite.update()
 
-        self.correct_sprites_list.update()
-        self.incorrect_sprites_list.update()
+            self.correct_sprites_list.update()
+            self.incorrect_sprites_list.update()
 
-        self.cloud_sprites_list.update()
-        
-        # creates more sprites if there are not enough.
-        if self.delta_time_elapsed > 1:
-            if random.randrange(0, 3) == 0:
-                print("Create correct sprite")
-                self.create_correct_sprite(self.current_q_and_a.id, self.current_q_and_a.answer)
-                
-            else:
-                print("Create incorrect sprite")
-                # Need to generate an incorrect answer, append to list of the wrong answers (should mirror index of
-                # incorrect sprites on screen), then draw sprite.
-
-                wrong_answers = [self.current_q_and_a.wrong_1, self.current_q_and_a.wrong_2, self.current_q_and_a.wrong_3]
-                wrong_text = wrong_answers[random.randrange(0, 2)]
-                self.create_incorrect_sprite(self.current_q_and_a.id, wrong_text)
-
-            self.create_cloud_sprite()
-            self.delta_time_elapsed = 0
-
-        # speeds up each sprite. if off screen -> remove the sprite.
-        for sprite in self.incorrect_sprites_list:
-            sprite.center_y += self.movement_speed
-
-            if sprite.center_y > (self.height + 50):
-                sprite.remove_from_sprite_lists()
-        
-        for sprite in self.correct_sprites_list:
-            sprite.center_y += self.movement_speed
-
-            if sprite.center_y > (self.height + 50):
-                sprite.remove_from_sprite_lists()
-
-
-        # speeds up the clouds. if off screen -> remove the sprite.
-        for cloud in self.cloud_sprites_list:
-            cloud.center_y += self.movement_speed / 2
-
-            if cloud.center_y > (self.height + 50):
-                cloud.remove_from_sprite_lists()
-
-
-        # check for collisions.
-        incorrect_answers_hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.incorrect_sprites_list)
-        correct_answers_hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.correct_sprites_list)
-
-        if incorrect_answers_hit_list:
-            for incorrect in incorrect_answers_hit_list:
-                incorrect.remove_from_sprite_lists()
-                self.player_lives -= 1
-                
-        if correct_answers_hit_list:
-            for correct in correct_answers_hit_list:
-                print(f"{correct.question_id}, {self.current_q_and_a.id}")
-                if correct.question_id == self.current_q_and_a.id:
-                    correct.remove_from_sprite_lists()
-                    self.player_score += int(self.current_q_and_a.difficulty)
-                    self.update_next_question()
+            self.cloud_sprites_list.update()
+            
+            # creates more sprites if there are not enough.
+            if self.delta_time_elapsed > 1:
+                if random.randrange(0, 3) == 0:
+                    print("Create correct sprite")
+                    self.create_correct_sprite(self.current_q_and_a.id, self.current_q_and_a.answer)
+                    
                 else:
-                    correct.remove_from_sprite_lists()
+                    print("Create incorrect sprite")
+                    # Need to generate an incorrect answer, append to list of the wrong answers (should mirror index of
+                    # incorrect sprites on screen), then draw sprite.
+
+                    wrong_answers = [self.current_q_and_a.wrong_1, self.current_q_and_a.wrong_2, self.current_q_and_a.wrong_3]
+                    wrong_text = wrong_answers[random.randrange(0, 2)]
+                    self.create_incorrect_sprite(self.current_q_and_a.id, wrong_text)
+
+                self.create_cloud_sprite()
+                self.delta_time_elapsed = 0
+
+            # speeds up each sprite. if off screen -> remove the sprite.
+            for sprite in self.incorrect_sprites_list:
+                sprite.center_y += self.movement_speed
+
+                if sprite.center_y > (self.height + 50):
+                    sprite.remove_from_sprite_lists()
+            
+            for sprite in self.correct_sprites_list:
+                sprite.center_y += self.movement_speed
+
+                if sprite.center_y > (self.height + 50):
+                    sprite.remove_from_sprite_lists()
+
+
+            # speeds up the clouds. if off screen -> remove the sprite.
+            for cloud in self.cloud_sprites_list:
+                cloud.center_y += self.movement_speed / 2
+
+                if cloud.center_y > (self.height + 50):
+                    cloud.remove_from_sprite_lists()
+
+
+            # check for collisions.
+            incorrect_answers_hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.incorrect_sprites_list)
+            correct_answers_hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.correct_sprites_list)
+
+            if incorrect_answers_hit_list:
+                for incorrect in incorrect_answers_hit_list:
+                    incorrect.remove_from_sprite_lists()
                     self.player_lives -= 1
+                    
+            if correct_answers_hit_list:
+                for correct in correct_answers_hit_list:
+                    print(f"{correct.question_id}, {self.current_q_and_a.id}")
+                    if correct.question_id == self.current_q_and_a.id:
+                        correct.remove_from_sprite_lists()
+                        self.player_score += int(self.current_q_and_a.difficulty)
+                        self.update_next_question()
+                    else:
+                        correct.remove_from_sprite_lists()
+                        self.player_lives -= 1
+        
+        else:
+            pass
 
 
     def create_incorrect_sprite(self, question_id, incorrect_answer_text):
