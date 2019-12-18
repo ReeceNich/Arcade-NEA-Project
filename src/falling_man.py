@@ -55,7 +55,7 @@ class MyGame(arcade.Window):
         self.height = height
         arcade.set_background_color(arcade.color.BABY_BLUE)
 
-        self.current_state = STATE_GAME_RUNNNG
+        self.current_state = STATE_INSTRUCTIONS
 
 
     def setup(self):
@@ -83,13 +83,13 @@ class MyGame(arcade.Window):
         arcade.start_render()
         
         if self.current_state == STATE_INSTRUCTIONS:
-            pass
+            self.draw_instructions()
 
         elif self.current_state == STATE_GAME_RUNNNG:
             self.draw_game_running()
         
         elif self.current_state == STATE_GAME_PAUSED:
-            pass
+            self.draw_paused()
             
         elif self.current_state == STATE_GAME_OVER:
             pass
@@ -109,6 +109,22 @@ class MyGame(arcade.Window):
 
         self.draw_toolbar()
 
+
+    def draw_instructions(self):
+        arcade.draw_rectangle_filled(self.width//2, self.height//2, self.width-100, self.height-100, arcade.color.WHITE)
+        arcade.draw_rectangle_outline(self.width//2, self.height//2, self.width-100, self.height-100, arcade.color.BLACK, 5)
+        arcade.draw_text("Welcome to Falling Man!", 0, self.height-150, arcade.color.BLACK, 48, self.width, 'center')
+        arcade.draw_text("Your character will be falling through the sky.", 0, self.height-250, arcade.color.BLACK, 18, self.width, 'center')
+        arcade.draw_text("Direct them using the mouse and collect all the correct answers!", 0, self.height-300, arcade.color.BLACK, 18, self.width, 'center')
+        arcade.draw_text("Try and avoid the wrong answers... they hurt you!", 0, self.height-350, arcade.color.BLACK, 18, self.width, 'center',)
+        arcade.draw_text("Click anywhere to start...", 0, 150, arcade.color.BLACK, 18, self.width, 'center')
+
+
+    def draw_paused(self):
+        arcade.draw_text("Paused", 0, self.height//2, arcade.color.DARK_RED, 96, self.width, 'center')
+        arcade.draw_text("(to resume, press Escape)", 0, self.height//2 - 35, arcade.color.DARK_SLATE_GRAY, 14, self.width, 'center')
+        arcade.draw_text(f"Lives remaining: {self.player_lives}", 0, self.height//2 - 125, arcade.color.BLACK, 18, self.width, 'center')
+        arcade.draw_text(f"Current score: {self.player_score}", 0, self.height//2 - 165, arcade.color.BLACK, 18, self.width, 'center')
     
     def on_mouse_motion(self, x, y, dy, dx):
         # only move the character if the game is 'running'.
@@ -116,6 +132,33 @@ class MyGame(arcade.Window):
             self.player_sprite.center_x = x
 
         else:
+            pass
+
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        if self.current_state == STATE_INSTRUCTIONS:
+            self.current_state = STATE_GAME_RUNNNG
+        elif self.current_state == STATE_GAME_OVER:
+            pass
+        else:
+            pass
+
+
+    def on_key_press(self, key, modifiers):
+        if key == arcade.key.ESCAPE:
+            # pauses/unpaused the game
+            if self.current_state == STATE_GAME_RUNNNG:
+                self.current_state = STATE_GAME_PAUSED
+            elif self.current_state == STATE_GAME_PAUSED:
+                self.current_state = STATE_GAME_RUNNNG
+            else:
+                pass
+        else:
+            pass
+
+    def on_key_release(self, key, modifiers):
+        # not really necessary...
+        if key == arcade.key.ESCAPE:
             pass
 
 
@@ -225,7 +268,7 @@ class MyGame(arcade.Window):
         # white bar (question)
         arcade.draw_lrtb_rectangle_filled(self.width*0.15, self.width*0.85, self.height, self.height-100, arcade.color.WHITE)
         arcade.draw_text("Question", self.width*0.15, self.height-22, arcade.color.BLACK, font_size=16, width=int(self.width*0.85-self.width*0.15), align="center")
-        arcade.draw_text(self.current_q_and_a.question, self.width*0.15, self.height-50, arcade.color.BLACK, font_size=14, width=int(self.width*0.85-self.width*0.15), align="center")
+        arcade.draw_text(self.current_q_and_a.question, self.width*0.15, self.height-55, arcade.color.DARK_MOSS_GREEN, font_size=20, width=int(self.width*0.85-self.width*0.15), align="center")
         arcade.draw_text(f"Difficulty: {self.current_q_and_a.difficulty}", self.width*0.15, self.height-95, arcade.color.BLACK, font_size=12, width=int(self.width*0.85-self.width*0.15), align="center")
 
         # lives box (right side)
