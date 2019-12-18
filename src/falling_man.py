@@ -92,7 +92,7 @@ class MyGame(arcade.Window):
             self.draw_paused()
             
         elif self.current_state == STATE_GAME_OVER:
-            pass
+            self.draw_game_over()
         else:
             # default to game over here.
             pass
@@ -126,6 +126,10 @@ class MyGame(arcade.Window):
         arcade.draw_text(f"Lives remaining: {self.player_lives}", 0, self.height//2 - 125, arcade.color.BLACK, 18, self.width, 'center')
         arcade.draw_text(f"Current score: {self.player_score}", 0, self.height//2 - 165, arcade.color.BLACK, 18, self.width, 'center')
     
+    def draw_game_over(self):
+        arcade.draw_text("Game Over", 0, self.height//2, arcade.color.DARK_RED, 96, self.width, 'center')
+
+
     def on_mouse_motion(self, x, y, dy, dx):
         # only move the character if the game is 'running'.
         if self.current_state == STATE_GAME_RUNNNG:
@@ -233,6 +237,8 @@ class MyGame(arcade.Window):
                         correct.remove_from_sprite_lists()
                         self.player_lives -= 1
         
+            if self.player_lives == 0:
+                self.current_state = STATE_GAME_OVER
         else:
             pass
 
@@ -299,7 +305,12 @@ class MyGame(arcade.Window):
 
     def update_next_question(self):
         self.current_q_and_a_pointer += 1
-        self.current_q_and_a = data[self.current_q_and_a_pointer]
+
+        # if it can't fetch the next question (e.g. end of list), default to game over.
+        try:
+            self.current_q_and_a = data[self.current_q_and_a_pointer]
+        except:
+            self.current_state = STATE_GAME_OVER
 
 
 if __name__ == "__main__":
