@@ -265,10 +265,8 @@ class MyGame(arcade.Window):
 
 
     def draw_toolbar(self):
-        # white bar (question)
+        # white bar + difficulty (question)
         arcade.draw_lrtb_rectangle_filled(self.width*0.15, self.width*0.85, self.height, self.height-100, arcade.color.WHITE)
-        arcade.draw_text("Question", self.width*0.15, self.height-22, arcade.color.BLACK, font_size=16, width=int(self.width*0.85-self.width*0.15), align="center")
-        arcade.draw_text(self.current_q_and_a.question, self.width*0.15, self.height-55, arcade.color.DARK_MOSS_GREEN, font_size=20, width=int(self.width*0.85-self.width*0.15), align="center")
         arcade.draw_text(f"Difficulty: {self.current_q_and_a.difficulty}", self.width*0.15, self.height-95, arcade.color.BLACK, font_size=12, width=int(self.width*0.85-self.width*0.15), align="center")
 
         # lives box (right side)
@@ -281,6 +279,23 @@ class MyGame(arcade.Window):
         arcade.draw_text("Score", self.width*0.85, self.height-20, arcade.color.BLACK, font_size=14, width=int(self.width-self.width*0.85), align="center")
         arcade.draw_text(str(self.player_score), self.width*0.85, self.height-50, arcade.color.BLACK, font_size=14, width=int(self.width-self.width*0.85), align="center")
     
+        # draw the question
+        arcade.draw_text("Question", self.width*0.15, self.height-22, arcade.color.BLACK, font_size=16, width=int(self.width*0.85-self.width*0.15), align="center")
+        if len(self.current_q_and_a.question) > 40:
+            current_question_string = ""
+            line_height_displacement = 50
+            for char in self.current_q_and_a.question:
+                if len(current_question_string) >= 40:
+                    arcade.draw_text(current_question_string, self.width*0.15, self.height-line_height_displacement, arcade.color.DARK_MOSS_GREEN, font_size=20, width=int(self.width*0.85-self.width*0.15), align="center")
+                    line_height_displacement += 25
+                    current_question_string = char
+                else:
+                    current_question_string += char
+            else:
+                arcade.draw_text(current_question_string, self.width*0.15, self.height-line_height_displacement, arcade.color.DARK_MOSS_GREEN, font_size=20, width=int(self.width*0.85-self.width*0.15), align="center")
+
+        else:
+            arcade.draw_text(self.current_q_and_a.question, self.width*0.15, self.height-55, arcade.color.DARK_MOSS_GREEN, font_size=20, width=int(self.width*0.85-self.width*0.15), align="center")
 
     def update_next_question(self):
         self.current_q_and_a_pointer += 1
