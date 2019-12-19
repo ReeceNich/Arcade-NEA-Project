@@ -18,6 +18,7 @@ STATE_INSTRUCTIONS = 0
 STATE_GAME_RUNNNG = 1
 STATE_GAME_PAUSED = 2
 STATE_GAME_OVER = 3
+STATE_LOGIN_SCREEN = 4
 
 
 db = DB(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
@@ -285,7 +286,7 @@ class MyGame(arcade.Window):
         arcade.draw_text("Score", self.width*0.85, self.height-20, arcade.color.BLACK, font_size=14, width=int(self.width-self.width*0.85), align="center")
         arcade.draw_text(str(self.player_score), self.width*0.85, self.height-50, arcade.color.BLACK, font_size=14, width=int(self.width-self.width*0.85), align="center")
     
-        # draw the question
+        # draw the question text
         arcade.draw_text("Question", self.width*0.15, self.height-22, arcade.color.BLACK, font_size=16, width=int(self.width*0.85-self.width*0.15), align="center")
         if len(self.current_q_and_a.question) > 40:
             current_question_string = ""
@@ -303,6 +304,7 @@ class MyGame(arcade.Window):
         else:
             arcade.draw_text(self.current_q_and_a.question, self.width*0.15, self.height-55, arcade.color.DARK_MOSS_GREEN, font_size=20, width=int(self.width*0.85-self.width*0.15), align="center")
 
+    
     def update_next_question(self):
         self.current_q_and_a_pointer += 1
 
