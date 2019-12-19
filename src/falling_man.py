@@ -86,15 +86,19 @@ class MyGame(arcade.Window):
         arcade.start_render()
         
         if self.current_state == STATE_INSTRUCTIONS:
+            self.set_mouse_visible(True)
             self.draw_instructions()
 
         elif self.current_state == STATE_GAME_RUNNNG:
+            self.set_mouse_visible(False)
             self.draw_game_running()
         
         elif self.current_state == STATE_GAME_PAUSED:
+            self.set_mouse_visible(True)
             self.draw_paused()
             
         elif self.current_state == STATE_GAME_OVER:
+            self.set_mouse_visible(True)
             self.draw_game_over()
         else:
             # default to game over here.
@@ -131,6 +135,8 @@ class MyGame(arcade.Window):
     
     def draw_game_over(self):
         arcade.draw_text("Game Over", 0, self.height//2, arcade.color.DARK_RED, 96, self.width, 'center')
+        arcade.draw_text(f"Final score: {self.player_score}", 0, self.height//2 - 125, arcade.color.BLACK, 18, self.width, 'center')
+        arcade.draw_text("Click anywhere to go back to the start...", 0, 150, arcade.color.BLACK, 18, self.width, 'center')
 
 
     def on_mouse_motion(self, x, y, dy, dx):
@@ -145,8 +151,11 @@ class MyGame(arcade.Window):
     def on_mouse_press(self, x, y, button, modifiers):
         if self.current_state == STATE_INSTRUCTIONS:
             self.current_state = STATE_GAME_RUNNNG
+            self.setup()
+
         elif self.current_state == STATE_GAME_OVER:
-            pass
+            self.current_state = STATE_INSTRUCTIONS
+
         else:
             pass
 
@@ -156,6 +165,7 @@ class MyGame(arcade.Window):
             # pauses/unpaused the game
             if self.current_state == STATE_GAME_RUNNNG:
                 self.current_state = STATE_GAME_PAUSED
+
             elif self.current_state == STATE_GAME_PAUSED:
                 self.current_state = STATE_GAME_RUNNNG
             else:
@@ -281,12 +291,12 @@ class MyGame(arcade.Window):
         # lives box (right side)
         arcade.draw_lrtb_rectangle_filled(0, self.width*0.15, self.height, self.height-100, (149, 249, 227))
         arcade.draw_text("Lives", 0, self.height-20, arcade.color.BLACK, font_size=14, width=int(self.width*0.15), align="center")
-        arcade.draw_text(str(self.player_lives), 0, self.height-50, arcade.color.BLACK, font_size=14, width=int(self.width*0.15), align="center")
+        arcade.draw_text(str(self.player_lives), 0, self.height-50, arcade.color.BLACK, font_size=18, width=int(self.width*0.15), align="center")
 
         # score box (left side)
         arcade.draw_lrtb_rectangle_filled(self.width*0.85, self.width, self.height, self.height-100, (231, 200, 221))
         arcade.draw_text("Score", self.width*0.85, self.height-20, arcade.color.BLACK, font_size=14, width=int(self.width-self.width*0.85), align="center")
-        arcade.draw_text(str(self.player_score), self.width*0.85, self.height-50, arcade.color.BLACK, font_size=14, width=int(self.width-self.width*0.85), align="center")
+        arcade.draw_text(str(self.player_score), self.width*0.85, self.height-50, arcade.color.BLACK, font_size=18, width=int(self.width-self.width*0.85), align="center")
     
         # draw the question text
         arcade.draw_text("Question", self.width*0.15, self.height-22, arcade.color.BLACK, font_size=16, width=int(self.width*0.85-self.width*0.15), align="center")
