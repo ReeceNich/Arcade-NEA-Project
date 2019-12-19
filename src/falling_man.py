@@ -75,8 +75,10 @@ class MyGame(arcade.Window):
         self.cloud_sprites_list = arcade.SpriteList()
 
         self.player_lives = 3
-        self.current_q_and_a_pointer = 0
-        self.current_q_and_a = data[self.current_q_and_a_pointer]
+        self.current_q_and_a_pointer = -1
+        self.current_q_and_a = None
+        self.update_next_question()
+        
         self.player_score = 0
 
 
