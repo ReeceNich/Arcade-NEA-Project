@@ -72,11 +72,22 @@ def postgres_example():
     conn = psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'")
     db = DB(conn)
 
+    db.drop_all()
     db.setup()
 
     q1 = Question('What is 12x12?', '144', '121', '141', '240', 'Maths', 2)
     q2 = Question('What does CPU stand for?', 'Central Processing Unit', 'Central Power Unit', 'Computing Power Unit', 'Computer Programming Unit', 'Comp Sci', 1)
     q3 = Question('How do you find the gradient of a polynomial equation?', 'Differentiate', 'Integrate', 'Simultaneous Equations', 'Square Root', 'Maths', 3)
+
+    q4 = Question('What colour is grass?', 'Green', 'Blue', 'Red', 'Pink', 'Geography', 1)
+    q5 = Question('Translate "Hello" into French', 'Bonjour', 'Hola', 'Je Suis', 'Pomme', 'French', 2)
+    q6 = Question('Who wrote "A Christmas Carol"?', 'Charles Dickens', 'Thomas Hardy', 'William Shakespeare', 'J. K. Rowling', 'English', 3)
+
+
+    db.insert_question(q4)
+    db.insert_question(q5)
+    db.insert_question(q6)
+
     db.insert_question(q1)
     db.insert_question(q2)
     db.insert_question(q3)
