@@ -1,6 +1,7 @@
 import arcade
 import random
-from database_manager import *
+import psycopg2
+from database_manager import DatabaseManager, Question
 
 
 width = 800
@@ -21,7 +22,7 @@ STATE_GAME_OVER = 3
 STATE_LOGIN_SCREEN = 4
 
 
-db = DB(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
+db = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
 data = db.fetch_all()
 
 
