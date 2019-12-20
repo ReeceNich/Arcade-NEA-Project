@@ -1,7 +1,7 @@
 import psycopg2
 
 
-class DB:
+class DatabaseManager:
     def __init__(self, conn):
         self.conn = conn
         self.cursor = conn.cursor()
@@ -24,15 +24,24 @@ class DB:
     def setup(self):
         self.drop_all()
 
+        # todo: link tables
+        # need to link to the submects table
         self.cursor.execute("""
         CREATE TABLE Questions (id SERIAL PRIMARY KEY, question TEXT, answer TEXT, wrong_1 TEXT, wrong_2 TEXT, wrong_3 TEXT, subject TEXT, difficulty INTEGER);
         """)
         self.cursor.execute("""
-        CREATE TABLE Users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, passcode INTEGER NOT NULL)
+        CREATE TABLE Subjects (id SERIAL PRIMARY KEY, name TEXT)
         """)
         # self.cursor.execute("""
-        # CREATE TABLE 
+        # CREATE TABLE QuestionSubject
         # """)
+
+        self.cursor.execute("""
+        CREATE TABLE Users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, passcode INTEGER NOT NULL)
+        """)
+        self.cursor.execute("""
+        CREATE TABLE Answered (user_id INTEGER, question_id INTEGER, correct BOOLEAN, PRIMARY KEY(user_id, question_id) )
+        """)
 
         self.conn.commit()
 
@@ -70,7 +79,7 @@ class Question:
 
 def postgres_example():
     conn = psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'")
-    db = DB(conn)
+    db = DatabaseManager(conn)
 
     db.drop_all()
     db.setup()
