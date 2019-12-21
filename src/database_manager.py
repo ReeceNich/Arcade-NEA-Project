@@ -13,10 +13,25 @@ class DatabaseManager:
 
     def drop_all(self):
         self.cursor.execute("""
-        DROP TABLE IF EXISTS Questions;
+        DROP TABLE IF EXISTS Question;
+        """)
+        self.cursor.execute("""
+        DROP TABLE IF EXISTS Subject;
+        """)
+        self.cursor.execute("""
+        DROP TABLE IF EXISTS QuestionSubject;
         """)
         self.cursor.execute("""
         DROP TABLE IF EXISTS Users;
+        """)
+        self.cursor.execute("""
+        DROP TABLE IF EXISTS UserAnswered;
+        """)
+        self.cursor.execute("""
+        DROP TABLE IF EXISTS School;
+        """)
+        self.cursor.execute("""
+        DROP TABLE IF EXISTS UserSchool;
         """)
         self.conn.commit()
 
@@ -27,20 +42,27 @@ class DatabaseManager:
         # todo: link tables
         # need to link to the submects table
         self.cursor.execute("""
-        CREATE TABLE Questions (id SERIAL PRIMARY KEY, question TEXT, answer TEXT, wrong_1 TEXT, wrong_2 TEXT, wrong_3 TEXT, subject TEXT, difficulty INTEGER);
+        CREATE TABLE Question (id SERIAL PRIMARY KEY, question TEXT, answer TEXT, wrong_1 TEXT, wrong_2 TEXT, wrong_3 TEXT, subject TEXT, difficulty INTEGER);
         """)
         self.cursor.execute("""
-        CREATE TABLE Subjects (id SERIAL PRIMARY KEY, name TEXT)
+        CREATE TABLE Subject (id SERIAL PRIMARY KEY, name TEXT)
         """)
-        # self.cursor.execute("""
-        # CREATE TABLE QuestionSubject
-        # """)
+        self.cursor.execute("""
+        CREATE TABLE QuestionSubject (question_id INTEGER, subject_id INTEGER, PRIMARY KEY(question_id, subject_id))
+        """)
 
         self.cursor.execute("""
         CREATE TABLE Users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, passcode INTEGER NOT NULL)
         """)
         self.cursor.execute("""
-        CREATE TABLE Answered (user_id INTEGER, question_id INTEGER, correct BOOLEAN, PRIMARY KEY(user_id, question_id) )
+        CREATE TABLE UserAnswered (user_id INTEGER, question_id INTEGER, correct BOOLEAN, PRIMARY KEY(user_id, question_id) )
+        """)
+
+        self.cursor.execute("""
+        CREATE TABLE School (id SERIAL PRIMARY KEY, name TEXT)
+        """)
+        self.cursor.execute("""
+        CREATE TABLE UserSchool (user_id INTEGER, school_id INTEGER, PRIMARY KEY(user_id, school_id) )
         """)
 
         self.conn.commit()
@@ -48,7 +70,7 @@ class DatabaseManager:
     
     def insert_question(self, data):
         self.cursor.execute(f"""
-        INSERT INTO Questions (question, answer, wrong_1, wrong_2, wrong_3, subject, difficulty)
+        INSERT INTO Question (question, answer, wrong_1, wrong_2, wrong_3, subject, difficulty)
         VALUES ('{data.question}', '{data.answer}', '{data.wrong_1}', '{data.wrong_2}', '{data.wrong_3}', '{data.subject}', '{data.difficulty}')
         """)
         self.conn.commit()
@@ -56,7 +78,7 @@ class DatabaseManager:
     
     def fetch_all(self):
         self.cursor.execute("""
-        SELECT * FROM Questions
+        SELECT * FROM Question
         """)
         question = []
         for row in self.cursor:
