@@ -33,24 +33,40 @@ class DatabaseManager:
         CREATE TABLE Subject (id SERIAL PRIMARY KEY, name TEXT)
         """)
         self.cursor.execute("""
-        CREATE TABLE QuestionSubject (question_id INTEGER, subject_id INTEGER, PRIMARY KEY(question_id, subject_id))
-        """)
-        self.cursor.execute("""
         CREATE TABLE Difficulty (difficulty INTEGER PRIMARY KEY, description TEXT)
         """)
         self.cursor.execute("""
-        CREATE TABLE QuestionDifficulty (question_id INTEGER, difficulty_id INTEGER, PRIMARY KEY(question_id, difficulty_id))
-        """)
-
-        self.cursor.execute("""
-        CREATE TABLE QuestionAnswered (user_id INTEGER, question_id INTEGER, correctly_answered BOOLEAN, actual_answered_value TEXT, PRIMARY KEY(user_id, question_id) )
-        """)
-
-        self.cursor.execute("""
-        CREATE TABLE Users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, passcode INTEGER NOT NULL, email TEXT, school_id INTEGER)
-        """)
-        self.cursor.execute("""
         CREATE TABLE School (id SERIAL PRIMARY KEY, name TEXT)
+        """)
+
+        self.cursor.execute("""
+        CREATE TABLE Users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, passcode INTEGER NOT NULL, email TEXT, school_id INTEGER,
+        FOREIGN KEY(school_id) REFERENCES School (id) ON DELETE CASCADE
+        )
+        """)
+
+        self.cursor.execute("""
+        CREATE TABLE QuestionSubject (question_id INTEGER, subject_id INTEGER,
+        PRIMARY KEY(question_id, subject_id),
+        FOREIGN KEY(question_id) REFERENCES Question (id) ON DELETE CASCADE,
+        FOREIGN KEY(subject_id) REFERENCES Subject (id) ON DELETE CASCADE
+        )
+        """)
+        
+        self.cursor.execute("""
+        CREATE TABLE QuestionDifficulty (question_id INTEGER, difficulty_id INTEGER,
+        PRIMARY KEY(question_id, difficulty_id),
+        FOREIGN KEY(question_id) REFERENCES Question (id) ON DELETE CASCADE,
+        FOREIGN KEY(difficulty_id) REFERENCES Difficulty (difficulty) ON DELETE CASCADE
+        )
+        """)
+
+        self.cursor.execute("""
+        CREATE TABLE QuestionAnswered (user_id INTEGER, question_id INTEGER, correctly_answered BOOLEAN, actual_answered_value TEXT,
+        PRIMARY KEY(user_id, question_id),
+        FOREIGN KEY(user_id) REFERENCES Users (id) ON DELETE CASCADE,
+        FOREIGN KEY(question_id) REFERENCES Question (id) ON DELETE CASCADE
+        )
         """)
         
 
