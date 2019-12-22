@@ -13,36 +13,21 @@ class DatabaseManager:
 
     def drop_all(self):
         self.cursor.execute("""
-        DROP TABLE IF EXISTS Question;
+        DROP SCHEMA public CASCADE;
+        CREATE SCHEMA public;
+
+        GRANT ALL ON SCHEMA public TO postgres;
+        GRANT ALL ON SCHEMA public TO public;
         """)
-        self.cursor.execute("""
-        DROP TABLE IF EXISTS Subject;
-        """)
-        self.cursor.execute("""
-        DROP TABLE IF EXISTS QuestionSubject;
-        """)
-        self.cursor.execute("""
-        DROP TABLE IF EXISTS Users;
-        """)
-        self.cursor.execute("""
-        DROP TABLE IF EXISTS UserAnswered;
-        """)
-        self.cursor.execute("""
-        DROP TABLE IF EXISTS School;
-        """)
-        self.cursor.execute("""
-        DROP TABLE IF EXISTS UserSchool;
-        """)
+
         self.conn.commit()
 
 
     def setup(self):
         self.drop_all()
 
-        # todo: link tables
-        # need to link to the submects table
         self.cursor.execute("""
-        CREATE TABLE Question (id SERIAL PRIMARY KEY, question TEXT, answer TEXT, wrong_1 TEXT, wrong_2 TEXT, wrong_3 TEXT, subject TEXT, difficulty INTEGER);
+        CREATE TABLE Question (id SERIAL PRIMARY KEY, question TEXT, answer TEXT, incorrect_1 TEXT, incorrect_2 TEXT, incorrect_3 TEXT);
         """)
         self.cursor.execute("""
         CREATE TABLE Subject (id SERIAL PRIMARY KEY, name TEXT)
@@ -50,28 +35,32 @@ class DatabaseManager:
         self.cursor.execute("""
         CREATE TABLE QuestionSubject (question_id INTEGER, subject_id INTEGER, PRIMARY KEY(question_id, subject_id))
         """)
-
         self.cursor.execute("""
-        CREATE TABLE Users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, passcode INTEGER NOT NULL)
+        CREATE TABLE Difficulty (difficulty INTEGER PRIMARY KEY, description TEXT)
         """)
         self.cursor.execute("""
-        CREATE TABLE UserAnswered (user_id INTEGER, question_id INTEGER, correct BOOLEAN, PRIMARY KEY(user_id, question_id) )
+        CREATE TABLE QuestionDifficulty (question_id INTEGER, difficulty_id INTEGER, PRIMARY KEY(question_id, difficulty_id))
         """)
 
+        self.cursor.execute("""
+        CREATE TABLE QuestionAnswered (user_id INTEGER, question_id INTEGER, correctly_answered BOOLEAN, actual_answered_value TEXT, PRIMARY KEY(user_id, question_id) )
+        """)
+
+        self.cursor.execute("""
+        CREATE TABLE Users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, passcode INTEGER NOT NULL, email TEXT, school_id INTEGER)
+        """)
         self.cursor.execute("""
         CREATE TABLE School (id SERIAL PRIMARY KEY, name TEXT)
         """)
-        self.cursor.execute("""
-        CREATE TABLE UserSchool (user_id INTEGER, school_id INTEGER, PRIMARY KEY(user_id, school_id) )
-        """)
+        
 
         self.conn.commit()
 
     
     def insert_question(self, data):
         self.cursor.execute(f"""
-        INSERT INTO Question (question, answer, wrong_1, wrong_2, wrong_3, subject, difficulty)
-        VALUES ('{data.question}', '{data.answer}', '{data.wrong_1}', '{data.wrong_2}', '{data.wrong_3}', '{data.subject}', '{data.difficulty}')
+        INSERT INTO Question (question, answer, incorrect_1, incorrect_2, incorrect_3)
+        VALUES ('{data.question}', '{data.answer}', '{data.incorrect_1}', '{data.incorrect_2}', '{data.incorrect_3}')
         """)
         self.conn.commit()
 
@@ -82,50 +71,55 @@ class DatabaseManager:
         """)
         question = []
         for row in self.cursor:
-            question.append(Question(q_id=row[0], question=row[1], answer=row[2], wrong_1=row[3],
-                                     wrong_2=row[4], wrong_3=row[5], subject=row[6], difficulty=row[7]))
+            question.append(Question(q_id=row[0], question=row[1], answer=row[2], incorrect_1=row[3],
+                                     incorrect_2=row[4], incorrect_3=row[5]))
         return question
 
 
 class Question:
-    def __init__(self, question, answer, wrong_1, wrong_2, wrong_3, subject, difficulty, q_id=None):
+    def __init__(self, question, answer, incorrect_1, incorrect_2, incorrect_3, q_id=None):
         self.id = q_id
         self.question = question
         self.answer = answer
-        self.wrong_1 = wrong_1
-        self.wrong_2 = wrong_2
-        self.wrong_3 = wrong_3
-        self.subject = subject
-        self.difficulty = difficulty
+        self.incorrect_1 = incorrect_1
+        self.incorrect_2 = incorrect_2
+        self.incorrect_3 = incorrect_3
 
 
-def postgres_example():
+def create_dummy_database():
     conn = psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'")
     db = DatabaseManager(conn)
 
     db.drop_all()
     db.setup()
 
-    q1 = Question('What is 12x12?', '144', '121', '141', '240', 'Maths', 2)
-    q2 = Question('What does CPU stand for?', 'Central Processing Unit', 'Central Power Unit', 'Computing Power Unit', 'Computer Programming Unit', 'Comp Sci', 1)
-    q3 = Question('How do you find the gradient of a polynomial equation?', 'Differentiate', 'Integrate', 'Simultaneous Equations', 'Square Root', 'Maths', 3)
+    # q1 = Question('What is 12x12?', '144', '121', '141', '240', 'Maths', 2)
+    # q2 = Question('What does CPU stand for?', 'Central Processing Unit', 'Central Power Unit', 'Computing Power Unit', 'Computer Programming Unit', 'Comp Sci', 1)
+    # q3 = Question('How do you find the gradient of a polynomial equation?', 'Differentiate', 'Integrate', 'Simultaneous Equations', 'Square Root', 'Maths', 3)
 
-    q4 = Question('What colour is grass?', 'Green', 'Blue', 'Red', 'Pink', 'Geography', 1)
-    q5 = Question('Translate "Hello" into French', 'Bonjour', 'Hola', 'Je Suis', 'Pomme', 'French', 2)
-    q6 = Question('Who wrote "A Christmas Carol"?', 'Charles Dickens', 'Thomas Hardy', 'William Shakespeare', 'J. K. Rowling', 'English', 3)
+    # q4 = Question('What colour is grass?', 'Green', 'Blue', 'Red', 'Pink', 'Geography', 1)
+    # q5 = Question('Translate "Hello" into French', 'Bonjour', 'Hola', 'Je Suis', 'Pomme', 'French', 2)
+    # q6 = Question('Who wrote "A Christmas Carol"?', 'Charles Dickens', 'Thomas Hardy', 'William Shakespeare', 'J. K. Rowling', 'English', 3)
 
 
-    db.insert_question(q4)
-    db.insert_question(q5)
-    db.insert_question(q6)
+    # db.insert_question(q4)
+    # db.insert_question(q5)
+    # db.insert_question(q6)
 
-    db.insert_question(q1)
-    db.insert_question(q2)
-    db.insert_question(q3)
+    # db.insert_question(q1)
+    # db.insert_question(q2)
+    # db.insert_question(q3)
 
-    results = db.fetch_all()
-    print(results[0].question, results[0].answer)
+    # results = db.fetch_all()
+    # print(results[0].question, results[0].answer)
+    
+    print("Created dummy database!")
 
+
+def drop_all():
+        conn = psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'")
+        db = DatabaseManager(conn)
+        db.drop_all()
 
 if __name__ == "__main__":
-    postgres_example()
+    create_dummy_database()
