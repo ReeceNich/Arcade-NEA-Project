@@ -27,26 +27,26 @@ class DatabaseManager:
         self.drop_all()
 
         self.cursor.execute("""
-        CREATE TABLE Question (id SERIAL PRIMARY KEY, question TEXT, answer TEXT, incorrect_1 TEXT, incorrect_2 TEXT, incorrect_3 TEXT);
+        CREATE TABLE Question (id SERIAL PRIMARY KEY, question TEXT NOT NULL, answer TEXT NOT NULL, incorrect_1 TEXT NOT NULL, incorrect_2 TEXT NOT NULL, incorrect_3 TEXT NOT NULL);
         """)
         self.cursor.execute("""
-        CREATE TABLE Subject (id SERIAL PRIMARY KEY, name TEXT)
+        CREATE TABLE Subject (id SERIAL PRIMARY KEY, name TEXT NOT NULL)
         """)
         self.cursor.execute("""
-        CREATE TABLE Difficulty (difficulty INTEGER PRIMARY KEY, description TEXT)
+        CREATE TABLE Difficulty (difficulty INTEGER PRIMARY KEY, description TEXT NOT NULL)
         """)
         self.cursor.execute("""
-        CREATE TABLE School (id SERIAL PRIMARY KEY, name TEXT)
+        CREATE TABLE School (id SERIAL PRIMARY KEY, name TEXT NOT NULL)
         """)
 
         self.cursor.execute("""
-        CREATE TABLE Users (id SERIAL PRIMARY KEY, username TEXT NOT NULL, passcode INTEGER NOT NULL, email TEXT, school_id INTEGER,
+        CREATE TABLE Users (id SERIAL PRIMARY KEY, name TEXT NOT NULL, passcode TEXT NOT NULL, email TEXT NOT NULL UNIQUE, school_id INTEGER NOT NULL,
         FOREIGN KEY(school_id) REFERENCES School (id) ON DELETE CASCADE
         )
         """)
 
         self.cursor.execute("""
-        CREATE TABLE QuestionSubject (question_id INTEGER, subject_id INTEGER,
+        CREATE TABLE QuestionSubject (question_id INTEGER NOT NULL, subject_id INTEGER NOT NULL,
         PRIMARY KEY(question_id, subject_id),
         FOREIGN KEY(question_id) REFERENCES Question (id) ON DELETE CASCADE,
         FOREIGN KEY(subject_id) REFERENCES Subject (id) ON DELETE CASCADE
@@ -54,7 +54,7 @@ class DatabaseManager:
         """)
         
         self.cursor.execute("""
-        CREATE TABLE QuestionDifficulty (question_id INTEGER, difficulty_id INTEGER,
+        CREATE TABLE QuestionDifficulty (question_id INTEGER NOT NULL, difficulty_id INTEGER NOT NULL,
         PRIMARY KEY(question_id, difficulty_id),
         FOREIGN KEY(question_id) REFERENCES Question (id) ON DELETE CASCADE,
         FOREIGN KEY(difficulty_id) REFERENCES Difficulty (difficulty) ON DELETE CASCADE
@@ -62,7 +62,7 @@ class DatabaseManager:
         """)
 
         self.cursor.execute("""
-        CREATE TABLE QuestionAnswered (user_id INTEGER, question_id INTEGER, correctly_answered BOOLEAN, actual_answered_value TEXT,
+        CREATE TABLE QuestionAnswered (user_id INTEGER NOT NULL, question_id INTEGER NOT NULL, correctly_answered BOOLEAN NOT NULL, actual_answered_value TEXT NOT NULL,
         PRIMARY KEY(user_id, question_id),
         FOREIGN KEY(user_id) REFERENCES Users (id) ON DELETE CASCADE,
         FOREIGN KEY(question_id) REFERENCES Question (id) ON DELETE CASCADE
@@ -70,14 +70,6 @@ class DatabaseManager:
         """)
         
 
-        self.conn.commit()
-
-    
-    def insert_question(self, data):
-        self.cursor.execute(f"""
-        INSERT INTO Question (question, answer, incorrect_1, incorrect_2, incorrect_3)
-        VALUES ('{data.question}', '{data.answer}', '{data.incorrect_1}', '{data.incorrect_2}', '{data.incorrect_3}')
-        """)
         self.conn.commit()
 
     
@@ -91,6 +83,34 @@ class DatabaseManager:
                                      incorrect_2=row[4], incorrect_3=row[5]))
         return question
 
+
+    def insert_question(self, data):
+        self.cursor.execute(f"""
+        INSERT INTO Question (question, answer, incorrect_1, incorrect_2, incorrect_3)
+        VALUES ('{data.question}', '{data.answer}', '{data.incorrect_1}', '{data.incorrect_2}', '{data.incorrect_3}')
+        """)
+        self.conn.commit()
+
+    def insert_school(self, data):
+        self.cursor.execute(f"""
+        INSERT INTO School (name)
+        VALUES ('{data.name}')
+        """)
+        self.conn.commit()
+
+    def insert_user(self, data):
+        self.cursor.execute(f"""
+        INSERT INTO Question (question, answer, incorrect_1, incorrect_2, incorrect_3)
+        VALUES ('{data.question}', '{data.answer}', '{data.incorrect_1}', '{data.incorrect_2}', '{data.incorrect_3}')
+        """)
+        self.conn.commit()
+    
+
+class School:
+    def __init__(self, question, answer, incorrect_1, incorrect_2, incorrect_3, q_id=None):
+        self.id = q_id
+        self.question = question
+        self.answer = answer
 
 class Question:
     def __init__(self, question, answer, incorrect_1, incorrect_2, incorrect_3, q_id=None):
@@ -133,9 +153,9 @@ def create_dummy_database():
 
 
 def drop_all():
-        conn = psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'")
-        db = DatabaseManager(conn)
-        db.drop_all()
+    conn = psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'")
+    db = DatabaseManager(conn)
+    db.drop_all()
 
 if __name__ == "__main__":
     create_dummy_database()
