@@ -195,16 +195,16 @@ class MyGame(arcade.Window):
             if self.delta_time_elapsed > 1:
                 if random.randrange(0, 3) == 0:
                     print("Create correct sprite")
-                    self.create_correct_sprite(self.current_q_and_a.id, self.current_q_and_a.answer)
+                    self.create_correct_sprite(self.current_q_and_a.question_id, self.current_q_and_a.answer)
                     
                 else:
                     print("Create incorrect sprite")
                     # Need to generate an incorrect answer, append to list of the wrong answers (should mirror index of
                     # incorrect sprites on screen), then draw sprite.
 
-                    wrong_answers = [self.current_q_and_a.wrong_1, self.current_q_and_a.wrong_2, self.current_q_and_a.wrong_3]
+                    wrong_answers = [self.current_q_and_a.incorrect_1, self.current_q_and_a.incorrect_2, self.current_q_and_a.incorrect_3]
                     wrong_text = wrong_answers[random.randrange(0, 2)]
-                    self.create_incorrect_sprite(self.current_q_and_a.id, wrong_text)
+                    self.create_incorrect_sprite(self.current_q_and_a.question_id, wrong_text)
 
                 self.create_cloud_sprite()
                 self.delta_time_elapsed = 0
@@ -242,10 +242,10 @@ class MyGame(arcade.Window):
                     
             if correct_answers_hit_list:
                 for correct in correct_answers_hit_list:
-                    print(f"{correct.question_id}, {self.current_q_and_a.id}")
-                    if correct.question_id == self.current_q_and_a.id:
+                    print(f"{correct.question_id}, {self.current_q_and_a.question_id}")
+                    if correct.question_id == self.current_q_and_a.question_id:
                         correct.remove_from_sprite_lists()
-                        self.player_score += int(self.current_q_and_a.difficulty)
+                        self.player_score += int(self.current_q_and_a.difficulty_id)
                         self.update_next_question()
                     else:
                         correct.remove_from_sprite_lists()
@@ -287,7 +287,7 @@ class MyGame(arcade.Window):
     def draw_toolbar(self):
         # white bar + difficulty (question)
         arcade.draw_lrtb_rectangle_filled(self.width*0.15, self.width*0.85, self.height, self.height-100, arcade.color.WHITE)
-        arcade.draw_text(f"Difficulty: {self.current_q_and_a.difficulty}", self.width*0.15, self.height-95, arcade.color.BLACK, font_size=12, width=int(self.width*0.85-self.width*0.15), align="center")
+        arcade.draw_text(f"Difficulty: {self.current_q_and_a.difficulty_id}", self.width*0.15, self.height-95, arcade.color.BLACK, font_size=12, width=int(self.width*0.85-self.width*0.15), align="center")
 
         # lives box (right side)
         arcade.draw_lrtb_rectangle_filled(0, self.width*0.15, self.height, self.height-100, (149, 249, 227))
