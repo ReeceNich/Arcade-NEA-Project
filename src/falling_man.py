@@ -23,7 +23,7 @@ STATE_LOGIN_SCREEN = 4
 
 
 db = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
-data = db.fetch_all()
+data = db.fetch_all_questions()
 
 
 class Player(arcade.Sprite):
