@@ -54,7 +54,7 @@ class DatabaseManager:
         """)
         
         self.cursor.execute("""
-        CREATE TABLE QuestionDifficulty (question_id INTEGER NOT NULL, difficulty_id INTEGER NOT NULL,
+        CREATE TABLE QuestionDifficulty (question_id INTEGER UNIQUE NOT NULL, difficulty_id INTEGER NOT NULL,
         PRIMARY KEY(question_id, difficulty_id),
         FOREIGN KEY(question_id) REFERENCES Question (id) ON DELETE CASCADE,
         FOREIGN KEY(difficulty_id) REFERENCES Difficulty (difficulty) ON DELETE CASCADE
@@ -73,13 +73,13 @@ class DatabaseManager:
         self.conn.commit()
 
     
-    def fetch_all(self):
+    def fetch_all_questions(self):
         self.cursor.execute("""
         SELECT * FROM Question
         """)
         question = []
         for row in self.cursor:
-            question.append(Question(q_id=row[0], question=row[1], answer=row[2], incorrect_1=row[3],
+            question.append(Question(question_id=row[0], question=row[1], answer=row[2], incorrect_1=row[3],
                                      incorrect_2=row[4], incorrect_3=row[5]))
         return question
 
@@ -88,6 +88,24 @@ class DatabaseManager:
         self.cursor.execute(f"""
         INSERT INTO Question (question, answer, incorrect_1, incorrect_2, incorrect_3)
         VALUES ('{data.question}', '{data.answer}', '{data.incorrect_1}', '{data.incorrect_2}', '{data.incorrect_3}')
+        RETURNING id;
+        """)
+        q_id = self.cursor.fetchone()[0]
+        print("THE ID IS:", q_id)
+        self.conn.commit()
+        return q_id
+    
+    def insert_question_difficulty(self, data):
+        self.cursor.execute(f"""
+        INSERT INTO QuestionDifficulty (question_id, difficulty_id)
+        VALUES ('{data.question_id}', '{data.difficulty_id}')
+        """)
+        self.conn.commit()
+
+    def insert_difficulty(self, data):
+        self.cursor.execute(f"""
+        INSERT INTO Difficulty (difficulty, description)
+        VALUES ('{data.difficulty_id}', '{data.description}')
         """)
         self.conn.commit()
 
@@ -107,19 +125,24 @@ class DatabaseManager:
     
 
 class School:
-    def __init__(self, question, answer, incorrect_1, incorrect_2, incorrect_3, q_id=None):
-        self.id = q_id
+    def __init__(self, question, answer, question_id=None):
+        self.id = question_id
         self.question = question
         self.answer = answer
 
 class Question:
-    def __init__(self, question, answer, incorrect_1, incorrect_2, incorrect_3, q_id=None):
-        self.id = q_id
+    def __init__(self, question, answer, incorrect_1, incorrect_2, incorrect_3, question_id=None):
+        self.question_id = question_id
         self.question = question
         self.answer = answer
         self.incorrect_1 = incorrect_1
         self.incorrect_2 = incorrect_2
         self.incorrect_3 = incorrect_3
+
+class Difficulty:
+    def __init__(self, description, difficulty_id=None):
+        self.difficulty_id = difficulty_id
+        self.description = description
 
 
 def create_dummy_database():
@@ -148,6 +171,18 @@ def create_dummy_database():
 
     # results = db.fetch_all()
     # print(results[0].question, results[0].answer)
+    
+    diff = Difficulty("Very Easy", 1)
+    db.insert_difficulty(diff)
+    diff = Difficulty("Easy", 2)
+    db.insert_difficulty(diff)
+
+    q = Question('What is 12x12?', '144', '121', '141', '240')
+    q_id = db.insert_question(q)
+    q.question_id = q_id
+    q.difficulty_id = 2
+
+    db.insert_question_difficulty(q)
     
     print("Created dummy database!")
 
