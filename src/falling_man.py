@@ -1,7 +1,7 @@
 import arcade
 import random
 import psycopg2
-from database_manager import DatabaseManager, Question
+from database.database_manager import DatabaseManager, Question, School, Difficulty, Subject
 
 
 width = 800
@@ -265,7 +265,7 @@ class MyGame(arcade.Window):
         
 
     def create_correct_sprite(self, question_id, correct_answer_text):
-        correct = CorrectSprite("images/correct_01.png", correct_scaling, question_id, correct_answer_text)
+        correct = CorrectSprite("images/incorrect_01.png", correct_scaling, question_id, correct_answer_text)
         correct.center_x = random.randrange(self.width)
         correct.center_y = random.randrange(-100, -50)
         self.correct_sprites_list.append(correct)
