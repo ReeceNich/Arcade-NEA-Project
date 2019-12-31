@@ -86,6 +86,7 @@ def main():
         3: "Add a difficulty",
         4: "Add a subject",
         5: "Add a question",
+        6: "Question Answered",
         0: "Exit",
     }
     for key, value in options.items():
@@ -122,6 +123,11 @@ def main():
         print("")
         print(f"Users new ID is: {u_id}")
         print(f"Users new passcode is: {passcode}")
+
+    elif choice == 6:
+        answered = QuestionAnswered(2, 4, False, "J.K. Rowling")
+        db.insert_question_answered(answered)
+        print("Done Test")
     else:
         pass
 
