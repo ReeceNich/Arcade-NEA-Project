@@ -146,7 +146,7 @@ class DatabaseManager:
     def insert_question_answered(self, data):
         self.cursor.execute(f"""
         INSERT INTO QuestionAnswered (user_id, question_id, correctly_answered, actual_answered_value)
-        VALUES ({data.user_id}, {data.question_id}, {data.correctly_answered}, {data.actual_answered_value})
+        VALUES ({data.user_id}, {data.question_id}, {data.correctly_answered}, '{data.actual_answered_value}')
         ON CONFLICT (user_id, question_id)
         DO UPDATE SET correctly_answered = Excluded.correctly_answered, actual_answered_value = Excluded.actual_answered_value 
         """)
