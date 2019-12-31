@@ -1,7 +1,7 @@
 import arcade
 import random
 import psycopg2
-from database.database_manager import DatabaseManager, Question, School, Difficulty, Subject
+from database.database_manager import DatabaseManager, Question, School, Difficulty, Subject, QuestionAnswered, User
 
 
 width = 800
@@ -36,6 +36,7 @@ class IncorrectSprite(arcade.Sprite):
         super().__init__(img, scale)
         self.question_id = question_id
         self.text = incorrect_answer_text.replace(' ', '\n')
+        self.raw_text = incorrect_answer_text
 
 
 class CorrectSprite(arcade.Sprite):
@@ -62,7 +63,7 @@ class MyGame(arcade.Window):
 
     def setup(self):
         # create sprites etc for a my game
-        self.player_sprite = Player("images/player_01.png", player_scaling)
+        self.player_sprite = Player("images/player_02.png", player_scaling)
         self.player_sprite.center_x = self.width / 2
         # self.player_sprite.center_y = self.height - 2
         self.player_sprite.top = self.height - 110
@@ -81,6 +82,9 @@ class MyGame(arcade.Window):
         self.update_next_question()
         
         self.player_score = 0
+
+        self.player_id = 2
+        self.QuestionsAnswered = []
 
 
     def on_draw(self):
@@ -237,6 +241,10 @@ class MyGame(arcade.Window):
 
             if incorrect_answers_hit_list:
                 for incorrect in incorrect_answers_hit_list:
+                    # updates QuestionAnswered
+                    q_a = QuestionAnswered(self.player_id, incorrect.question_id, False, incorrect.raw_text)
+                    self.QuestionsAnswered.append(q_a)
+
                     incorrect.remove_from_sprite_lists()
                     self.player_lives -= 1
                     
@@ -245,6 +253,11 @@ class MyGame(arcade.Window):
                     print(f"{correct.question_id}, {self.current_q_and_a.question_id}")
                     if correct.question_id == self.current_q_and_a.question_id:
                         correct.remove_from_sprite_lists()
+
+                        # updates QuestionAnswered
+                        q_a = QuestionAnswered(self.player_id, self.current_q_and_a.question_id, True, self.current_q_and_a.answer)
+                        self.QuestionsAnswered.append(q_a)
+
                         self.player_score += int(self.current_q_and_a.difficulty_id)
                         self.update_next_question()
                     else:
@@ -253,6 +266,13 @@ class MyGame(arcade.Window):
         
             if self.player_lives == 0:
                 self.current_state = STATE_GAME_OVER
+        
+
+        elif self.current_state == STATE_GAME_OVER:
+            # update the database
+            for entity in self.QuestionsAnswered:
+                db.insert_question_answered(entity)
+        
         else:
             pass
 
