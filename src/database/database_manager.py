@@ -142,6 +142,15 @@ class DatabaseManager:
         u_id = self.cursor.fetchone()[0]
         self.conn.commit()
         return u_id
+
+    def insert_question_answered(self, data):
+        self.cursor.execute(f"""
+        INSERT INTO QuestionAnswered (user_id, question_id, correctly_answered, actual_answered_value)
+        VALUES ({data.user_id}, {data.question_id}, {data.correctly_answered}, {data.actual_answered_value})
+        ON CONFLICT (user_id, question_id)
+        DO UPDATE SET correctly_answered = Excluded.correctly_answered, actual_answered_value = Excluded.actual_answered_value 
+        """)
+        self.conn.commit()
     
 
 class School:
@@ -178,6 +187,12 @@ class User:
         self.email = email
         self.school_id = school_id
 
+class QuestionAnswered:
+    def __init__(self, user_id, question_id, correctly_answered, actual_answered_value):
+        self.user_id = user_id
+        self.question_id = question_id
+        self.correctly_answered = correctly_answered
+        self.actual_answered_value = actual_answered_value
 
 
 if __name__ == "__main__":
