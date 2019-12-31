@@ -1,4 +1,6 @@
 from database_manager import *
+import psycopg2
+import random
 
 def create_dummy_database():
     conn = psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'")
@@ -59,15 +61,71 @@ def drop_everything():
     db.drop_all()
 
 
-def insert_question(db):
-    pass
+### MAIN PROGRAM STARTS HERE ###
+
+def get_choice(options):
+    while True:
+        try:
+            choice = int(input("Enter a choice > "))
+            if choice in options:
+                return choice
+            else:
+                print("Invalid choice, try again...")
+        except:
+            print("Invalid choice, try again...")
+
 
 def main():
-    print("""
-    Welcome t
-    """)
-    choice = input("What do you want to do? ")
-    if choice == 
+    print("Welcome to the database management system")
+    print("")
+    print("Here are your options:")
+
+    options = {
+        1: "Add a school",
+        2: "Add a user",
+        3: "Add a difficulty",
+        4: "Add a subject",
+        5: "Add a question",
+        0: "Exit",
+    }
+    for key, value in options.items():
+        print(f"{key}. {value}")
+    print("")
+
+    choice = get_choice(options)
+    db = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
+
+    print("")
+    print(f"*** SELECTED: {options[choice]} ***")
+    if choice == 0:
+        exit()
+
+    elif choice == 1:
+        name = input("Enter the school name > ")
+        school = School(name=name)
+        s_id = db.insert_school(school)
+        print("")
+        print(f"New school ID is: {s_id}")
+
+    elif choice == 2:
+        name = input("Enter the name > ")
+        passcode = input("Enter a passcode (blank for random) > ")
+        email = input("Enter their email address > ")
+        school_id = input("Enter their school ID > ")
+
+        if passcode == "":
+            passcode = random.randrange(1000, 9999)
+            passcode = str(passcode)
+
+        user = User(name, passcode, email, school_id)
+        u_id = db.insert_user(user)
+        print("")
+        print(f"Users new ID is: {u_id}")
+        print(f"Users new passcode is: {passcode}")
+    else:
+        pass
+
 
 if __name__ == "__main__":
-    create_dummy_database()
+    # create_dummy_database()
+    main()
