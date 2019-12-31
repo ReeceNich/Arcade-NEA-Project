@@ -127,22 +127,27 @@ class DatabaseManager:
         self.cursor.execute(f"""
         INSERT INTO School (name)
         VALUES ('{data.name}')
+        RETURNING id;
         """)
+        s_id = self.cursor.fetchone()[0]
         self.conn.commit()
+        return s_id
 
     def insert_user(self, data):
         self.cursor.execute(f"""
-        INSERT INTO Question (question, answer, incorrect_1, incorrect_2, incorrect_3)
-        VALUES ('{data.question}', '{data.answer}', '{data.incorrect_1}', '{data.incorrect_2}', '{data.incorrect_3}')
+        INSERT INTO Users (name, passcode, email, school_id)
+        VALUES ('{data.name}', '{data.passcode}', '{data.email}', '{data.school_id}')
+        RETURNING id;
         """)
+        u_id = self.cursor.fetchone()[0]
         self.conn.commit()
+        return u_id
     
 
 class School:
-    def __init__(self, question, answer, question_id=None):
-        self.id = question_id
-        self.question = question
-        self.answer = answer
+    def __init__(self, name, school_id=None):
+        self.id = school_id
+        self.name = name
 
 class Question:
     def __init__(self, question, answer, incorrect_1, incorrect_2, incorrect_3, subject_id=None, difficulty_id=None, question_id=None):
@@ -164,6 +169,15 @@ class Subject:
     def __init__(self, subject_id, name):
         self.subject_id = subject_id
         self.name = name
+
+class User:
+    def __init__(self, name, passcode, email, school_id, user_id=None):
+        self.id = user_id
+        self.name = name
+        self.passcode = passcode
+        self.email = email
+        self.school_id = school_id
+
 
 
 if __name__ == "__main__":
