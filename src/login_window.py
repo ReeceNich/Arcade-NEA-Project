@@ -3,6 +3,8 @@ import tkinter as tk
 class Login:
     def __init__(self):
         self.window = tk.Tk()
+        self.username = None
+        self.passcode = None
 
     def login_pressed(self):
         self.username = self.username_entry.get()
