@@ -83,6 +83,12 @@ class DatabaseManager:
                                      incorrect_2=row[4], incorrect_3=row[5], difficulty_id=row[7]))
         return question
 
+    def fetch_user(self, email):
+        self.cursor.execute(f"""
+        SELECT * FROM Users WHERE email = '{email}'
+        """)
+        return self.cursor.fetchone()
+
 
     def insert_question(self, data):
         self.cursor.execute(f"""
