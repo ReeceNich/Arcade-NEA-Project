@@ -53,15 +53,16 @@ class CloudSprite(arcade.Sprite):
             
 
 class MyGame(arcade.Window):
-    def __init__(self, width, height, title, username=None, passcode=None):
+    def __init__(self, width, height, title, email=None, passcode=None):
         super().__init__(width, height, title)
         self.width = width
         self.height = height
 
-        self.player_username = username
+        self.player_email = email
         self.player_passcode = passcode
-        self.player_id = 2
-        
+        self.player_id = db.fetch_user(self.player_email)[0]
+        print(f"User: {self.player_id}")
+
         arcade.set_background_color(arcade.color.BABY_BLUE)
 
         self.current_state = STATE_INSTRUCTIONS
@@ -135,9 +136,11 @@ class MyGame(arcade.Window):
         arcade.draw_text("Direct them using the mouse and collect all the correct answers!", 0, self.height-300, arcade.color.BLACK, 18, self.width, 'center')
         arcade.draw_text("Try and avoid the wrong answers... they hurt you!", 0, self.height-350, arcade.color.BLACK, 18, self.width, 'center')
         
-        arcade.draw_text(f"Username: {self.player_username}", 0, self.height//2, arcade.color.BLACK, 18, self.width, 'center')
+        arcade.draw_text(f"Email: {self.player_email}", 0, self.height//2, arcade.color.BLACK, 18, self.width, 'center')
         arcade.draw_text(f"Passcode: {self.player_passcode}", 0, self.height//2 - 50, arcade.color.BLACK, 18, self.width, 'center')
+        arcade.draw_text(f"Player ID: {self.player_id}", 0, self.height//2 - 100, arcade.color.BLACK, 18, self.width, 'center')
         
+
         arcade.draw_text("Click anywhere to start...", 0, 150, arcade.color.BLACK, 18, self.width, 'center')
 
 
@@ -366,7 +369,7 @@ if __name__ == "__main__":
     window.setup()
 
 
-    # print(login.username)
+    # print(login.email)
     # print(login.passcode)
 
     arcade.run()
