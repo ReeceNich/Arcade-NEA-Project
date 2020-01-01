@@ -2,6 +2,7 @@ import arcade
 import random
 import psycopg2
 from database.database_manager import DatabaseManager, Question, School, Difficulty, Subject, QuestionAnswered, User
+from login_window import Login
 
 
 width = 800
@@ -52,10 +53,15 @@ class CloudSprite(arcade.Sprite):
             
 
 class MyGame(arcade.Window):
-    def __init__(self, width, height, title):
+    def __init__(self, width, height, title, username=None, passcode=None):
         super().__init__(width, height, title)
         self.width = width
         self.height = height
+
+        self.player_username = username
+        self.player_passcode = passcode
+        self.player_id = 2
+        
         arcade.set_background_color(arcade.color.BABY_BLUE)
 
         self.current_state = STATE_INSTRUCTIONS
@@ -83,7 +89,6 @@ class MyGame(arcade.Window):
         
         self.player_score = 0
 
-        self.player_id = 2
         self.QuestionsAnswered = []
 
 
@@ -128,7 +133,11 @@ class MyGame(arcade.Window):
         arcade.draw_text("Welcome to Falling Man!", 0, self.height-150, arcade.color.BLACK, 48, self.width, 'center')
         arcade.draw_text("Your character will be falling through the sky.", 0, self.height-250, arcade.color.BLACK, 18, self.width, 'center')
         arcade.draw_text("Direct them using the mouse and collect all the correct answers!", 0, self.height-300, arcade.color.BLACK, 18, self.width, 'center')
-        arcade.draw_text("Try and avoid the wrong answers... they hurt you!", 0, self.height-350, arcade.color.BLACK, 18, self.width, 'center',)
+        arcade.draw_text("Try and avoid the wrong answers... they hurt you!", 0, self.height-350, arcade.color.BLACK, 18, self.width, 'center')
+        
+        arcade.draw_text(f"Username: {self.player_username}", 0, self.height//2, arcade.color.BLACK, 18, self.width, 'center')
+        arcade.draw_text(f"Passcode: {self.player_passcode}", 0, self.height//2 - 50, arcade.color.BLACK, 18, self.width, 'center')
+        
         arcade.draw_text("Click anywhere to start...", 0, 150, arcade.color.BLACK, 18, self.width, 'center')
 
 
@@ -349,6 +358,15 @@ class MyGame(arcade.Window):
 
 
 if __name__ == "__main__":
+    print("Hello")
+    # login = Login()
+    # login.draw_window()
+
     window = MyGame(width, height, title)
     window.setup()
+
+
+    # print(login.username)
+    # print(login.passcode)
+
     arcade.run()
