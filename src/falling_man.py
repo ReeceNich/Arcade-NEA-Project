@@ -258,6 +258,7 @@ class MyGame(arcade.Window):
                     self.QuestionsAnswered.append(q_a)
 
                     incorrect.remove_from_sprite_lists()
+                    self.update_next_question()
                     self.player_lives -= 1
                     
             if correct_answers_hit_list:
@@ -273,6 +274,7 @@ class MyGame(arcade.Window):
                         self.player_score += int(self.current_q_and_a.difficulty_id)
                         self.update_next_question()
                     else:
+                        self.update_next_question()
                         correct.remove_from_sprite_lists()
                         self.player_lives -= 1
         
@@ -284,7 +286,13 @@ class MyGame(arcade.Window):
             # update the database
             for entity in self.QuestionsAnswered:
                 db.insert_question_answered(entity)
+            self.QuestionsAnswered = []
         
+        elif self.current_state == STATE_GAME_PAUSED:
+            for entity in self.QuestionsAnswered:
+                db.insert_question_answered(entity)
+            self.QuestionsAnswered = []
+
         else:
             pass
 
