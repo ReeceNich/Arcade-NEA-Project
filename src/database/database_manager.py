@@ -81,6 +81,7 @@ class DatabaseManager:
         for row in self.cursor:
             question.append(Question(question_id=row[0], question=row[1], answer=row[2], incorrect_1=row[3],
                                      incorrect_2=row[4], incorrect_3=row[5], difficulty_id=row[7]))
+
         return question
 
     def fetch_user(self, email):
@@ -88,6 +89,14 @@ class DatabaseManager:
         SELECT * FROM Users WHERE email = '{email}'
         """)
         return self.cursor.fetchone()
+
+    def fetch_user_total_score(self, u_id):
+        self.cursor.execute(f"""
+        SELECT sum(questiondifficulty.difficulty_id) as TOTAL FROM QuestionAnswered
+        JOIN QuestionDifficulty ON QuestionAnswered.question_id = QuestionDifficulty.question_id
+        WHERE user_id = {u_id} AND QuestionAnswered.correctly_answered = true
+        """)
+        return self.cursor.fetchone()[0]
 
 
     def insert_question(self, data):
@@ -202,4 +211,5 @@ class QuestionAnswered:
 
 
 if __name__ == "__main__":
-    pass
+    d = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
+    print(d.fetch_user_total_score(2))
