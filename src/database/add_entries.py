@@ -86,7 +86,6 @@ def main():
         3: "Add a difficulty",
         4: "Add a subject",
         5: "Add a question",
-        6: "Question Answered",
         0: "Exit",
     }
     for key, value in options.items():
@@ -124,12 +123,37 @@ def main():
         print(f"Users new ID is: {u_id}")
         print(f"Users new passcode is: {passcode}")
 
-    elif choice == 6:
-        answered = QuestionAnswered(2, 4, False, "J.K. Rowling")
-        db.insert_question_answered(answered)
-        print("Done Test")
+    elif choice == 3:
+        description = input("Enter difficulty description > ")
+        d_id = int(input("Enter difficulty ID > "))
+        diff = Difficulty(description, d_id)
+        db.insert_difficulty(diff)
+
+    elif choice == 4:
+        name = input("Enter subject name > ")
+        s_id = input("Enter subject ID > ")
+        sub = Subject(s_id, name)
+        db.insert_subject(sub)
+
+    elif choice == 5:
+        q = input("Enter question > ")
+        ans = input("Enter correct answer > ")
+        inc_1 = input("Enter invalid answer > ")
+        inc_2 = input("Enter another invalid answer > ")
+        inc_3 = input("Enter another invalid answer > ")
+        s_id = input("Enter subject ID for this question > ")
+        d_id = int(input("Enter difficulty ID for this question > "))
+        question = Question(q, ans, inc_1, inc_2, inc_3, s_id, d_id)
+        
+        q_id = db.insert_question(question)
+        question.question_id = q_id
+
+        db.insert_question_subject(question)
+        db.insert_question_difficulty(question)
     else:
         pass
+    
+    print(f"*** END SELECTED: {options[choice]}")
 
 
 if __name__ == "__main__":
