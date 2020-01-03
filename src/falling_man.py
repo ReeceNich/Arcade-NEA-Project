@@ -3,6 +3,7 @@ import random
 import psycopg2
 from database.database_manager import DatabaseManager, Question, School, Difficulty, Subject, QuestionAnswered, User
 from login_window import Login
+import os
 
 
 width = 800
@@ -66,6 +67,10 @@ class MyGame(arcade.Window):
         arcade.set_background_color(arcade.color.BABY_BLUE)
 
         self.current_state = STATE_INSTRUCTIONS
+
+        # required! this enables the images to load.
+        file_path = os.path.dirname(os.path.abspath(__file__))
+        os.chdir(file_path)
 
 
     def setup(self):
