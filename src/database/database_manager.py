@@ -98,6 +98,39 @@ class DatabaseManager:
         """)
         return self.cursor.fetchone()[0]
 
+    def fetch_leaderboard_school(self, u_id):
+        s_id = 1
+
+        self.cursor.execute(f"""
+        SELECT QuestionAnswered.user_id, Users.name, sum(QuestionDifficulty.difficulty_id) FROM QuestionAnswered 
+        JOIN QuestionDifficulty ON QuestionAnswered.question_id = QuestionDifficulty.question_id
+        JOIN Users ON QuestionAnswered.user_id = Users.id
+        JOIN School on Users.school_id = School.id
+        WHERE QuestionAnswered.correctly_answered = true AND Users.school_id = {s_id}
+        GROUP BY QuestionAnswered.user_id, Users.name
+        """)
+
+        # this fetches every users CORRECTLY ANSWERED entries, along with their school and user info.
+        """
+        SELECT * FROM QuestionAnswered 
+        JOIN QuestionDifficulty ON QuestionAnswered.question_id = QuestionDifficulty.question_id
+        JOIN Users ON QuestionAnswered.user_id = Users.id
+        JOIN School on Users.school_id = School.id
+        WHERE QuestionAnswered.correctly_answered = true;
+        """
+
+        # returns just user ID and sum of the total correctly answered.
+        """
+        SELECT QuestionAnswered.user_id, sum(QuestionDifficulty.difficulty_id) FROM QuestionAnswered 
+        JOIN QuestionDifficulty ON QuestionAnswered.question_id = QuestionDifficulty.question_id
+        JOIN Users ON QuestionAnswered.user_id = Users.id
+        JOIN School on Users.school_id = School.id
+        WHERE QuestionAnswered.correctly_answered = true
+        GROUP BY QuestionAnswered.user_id;
+        """
+        for i in self.cursor:
+            print(i)
+
 
     def insert_question(self, data):
         self.cursor.execute(f"""
@@ -212,4 +245,6 @@ class QuestionAnswered:
 
 if __name__ == "__main__":
     d = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
-    print(d.fetch_user_total_score(2))
+    # print(d.fetch_user_total_score(2))
+    # print(d.fetch_user_total_score(3))
+    d.fetch_leaderboard_school(1)
