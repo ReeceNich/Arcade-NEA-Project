@@ -128,8 +128,10 @@ class DatabaseManager:
         WHERE QuestionAnswered.correctly_answered = true
         GROUP BY QuestionAnswered.user_id;
         """
+        records = []
         for i in self.cursor:
-            print(i)
+            records.append(i)
+        return records
 
 
     def insert_question(self, data):
@@ -247,4 +249,7 @@ if __name__ == "__main__":
     d = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
     # print(d.fetch_user_total_score(2))
     # print(d.fetch_user_total_score(3))
-    d.fetch_leaderboard_school(1)
+    records = d.fetch_leaderboard_school(2)
+    print("ID  |  Name  |  Score")
+    for i in records:
+        print("{:<7d}{:<9s}{:<5d}".format(i[0], i[1], i[2]))
