@@ -9,7 +9,7 @@ import os
 width = 800
 height = 1000
 title = "Falling Man"
-initial_movement_speed = 2
+initial_movement_speed = 0.1
 player_scaling = 0.2
 incorrect_scaling = 0.1
 correct_scaling = 0.1
@@ -33,19 +33,22 @@ class Player(arcade.Sprite):
         super().__init__(img, scale)
 
 
-class IncorrectSprite(arcade.Sprite):
-    def __init__(self, img, scale, question_id, incorrect_answer_text):
-        super().__init__(img, scale)
-        self.question_id = question_id
-        self.text = incorrect_answer_text.replace(' ', '\n')
-        self.raw_text = incorrect_answer_text
-
-
-class CorrectSprite(arcade.Sprite):
+class AnswerSprite(arcade.Sprite):
     def __init__(self, img, scale, question_id, correct_answer_text):
         super().__init__(img, scale)
         self.question_id = question_id
         self.text = correct_answer_text.replace(' ', '\n')
+
+
+class IncorrectSprite(AnswerSprite):
+    def __init__(self, img, scale, question_id, incorrect_answer_text):
+        super().__init__(img, scale, question_id, incorrect_answer_text)
+        self.raw_text = incorrect_answer_text
+
+
+class CorrectSprite(AnswerSprite):
+    def __init__(self, img, scale, question_id, correct_answer_text):
+        super().__init__(img, scale, question_id, correct_answer_text)
 
 
 class CloudSprite(arcade.Sprite):
