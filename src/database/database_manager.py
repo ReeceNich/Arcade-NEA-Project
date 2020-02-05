@@ -36,7 +36,7 @@ class DatabaseManager:
         CREATE TABLE Difficulty (difficulty INTEGER PRIMARY KEY, description TEXT NOT NULL)
         """)
         self.cursor.execute("""
-        CREATE TABLE School (id SERIAL PRIMARY KEY, name TEXT NOT NULL)
+        CREATE TABLE School (id SERIAL PRIMARY KEY, name TEXT NOT NULL, contact TEXT)
         """)
 
         self.cursor.execute("""
