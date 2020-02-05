@@ -9,7 +9,7 @@ import os
 width = 800
 height = 1000
 title = "Falling Man"
-initial_movement_speed = 0.1
+initial_movement_speed = 2
 player_scaling = 0.2
 incorrect_scaling = 0.1
 correct_scaling = 0.1
@@ -18,7 +18,7 @@ min_cloud_scaling = 0.05
 answer_font_size = 12
 
 STATE_INSTRUCTIONS = 0
-STATE_GAME_RUNNNG = 1
+STATE_GAME_RUNNING = 1
 STATE_GAME_PAUSED = 2
 STATE_GAME_OVER = 3
 STATE_LOGIN_SCREEN = 4
@@ -108,8 +108,8 @@ class MyGame(arcade.Window):
             self.set_mouse_visible(True)
             self.draw_instructions()
 
-        elif self.current_state == STATE_GAME_RUNNNG:
-            self.set_mouse_visible(False)
+        elif self.current_state == STATE_GAME_RUNNING:
+            self.set_mouse_visible(True)
             self.draw_game_running()
         
         elif self.current_state == STATE_GAME_PAUSED:
@@ -166,7 +166,7 @@ class MyGame(arcade.Window):
 
     def on_mouse_motion(self, x, y, dy, dx):
         # only move the character if the game is 'running'.
-        if self.current_state == STATE_GAME_RUNNNG:
+        if self.current_state == STATE_GAME_RUNNING:
             self.player_sprite.center_x = x
 
         else:
@@ -175,7 +175,7 @@ class MyGame(arcade.Window):
 
     def on_mouse_press(self, x, y, button, modifiers):
         if self.current_state == STATE_INSTRUCTIONS:
-            self.current_state = STATE_GAME_RUNNNG
+            self.current_state = STATE_GAME_RUNNING
             self.setup()
 
         elif self.current_state == STATE_GAME_OVER:
@@ -186,28 +186,44 @@ class MyGame(arcade.Window):
 
 
     def on_key_press(self, key, modifiers):
-        if key == arcade.key.ESCAPE:
-            # pauses/unpaused the game
-            if self.current_state == STATE_GAME_RUNNNG:
+        if self.current_state == STATE_GAME_RUNNING:
+            # pauses the game
+            if key == arcade.key.ESCAPE:
                 self.current_state = STATE_GAME_PAUSED
+            
+            # speed up everything is space is pressed (boost capability)
+            if key == arcade.key.SPACE:
+                self.movement_speed += 5
 
-            elif self.current_state == STATE_GAME_PAUSED:
-                self.current_state = STATE_GAME_RUNNNG
-            else:
-                pass
-        else:
+
+        if self.current_state == STATE_GAME_PAUSED:
+            # unpauses the game
+            if key == arcade.key.ESCAPE:
+                self.current_state = STATE_GAME_RUNNING
+
+        if self.current_state == STATE_GAME_OVER:
             pass
 
+
     def on_key_release(self, key, modifiers):
-        # not really necessary...
-        if key == arcade.key.ESCAPE:
+        if self.current_state == STATE_GAME_RUNNING:
+            # not really necessary...
+            if key == arcade.key.ESCAPE:
+                pass
+
+            if key == arcade.key.SPACE:
+                    self.movement_speed -= 5
+        
+        if self.current_state == STATE_GAME_PAUSED:
+            pass
+
+        if self.current_state == STATE_GAME_OVER:
             pass
 
 
     def update(self, delta_time):
-        if self.current_state == STATE_GAME_RUNNNG:
+        if self.current_state == STATE_GAME_RUNNING:
             self.delta_time_elapsed += delta_time
-            self.movement_speed += 0.001
             self.player_sprite.update()
 
             self.correct_sprites_list.update()
@@ -216,7 +232,7 @@ class MyGame(arcade.Window):
             self.cloud_sprites_list.update()
             
             # creates more sprites if there are not enough.
-            if self.delta_time_elapsed > 1:
+            if self.delta_time_elapsed > 2:
                 if random.randrange(0, 3) == 0:
                     print("Create correct sprite")
                     self.create_correct_sprite(self.current_q_and_a.question_id, self.current_q_and_a.answer)
@@ -274,6 +290,8 @@ class MyGame(arcade.Window):
                     print(f"{correct.question_id}, {self.current_q_and_a.question_id}")
                     if correct.question_id == self.current_q_and_a.question_id:
                         correct.remove_from_sprite_lists()
+
+                        self.movement_speed += 0.5
 
                         # updates QuestionAnswered
                         q_a = QuestionAnswered(self.player_id, self.current_q_and_a.question_id, True, self.current_q_and_a.answer)
@@ -381,7 +399,7 @@ if __name__ == "__main__":
     # login = Login()
     # login.draw_window()
 
-    window = MyGame(width, height, title)
+    window = MyGame(width, height, title, "reece@cowes.com", 1234)
     window.setup()
 
 
