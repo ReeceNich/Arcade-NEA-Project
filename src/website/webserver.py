@@ -1,10 +1,24 @@
-#!/usr/bin/python
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from os import curdir, sep
+from jinja2 import Template
+
+from http import cookies
+
+
+class DB():
+    def __init__(self):
+        pass
+
+    def get_name(self):
+        return "Reece"
 
 # This class handles any incoming request from
 # the browser
-class myHandler(BaseHTTPRequestHandler):
+class MyHandler(BaseHTTPRequestHandler):
+    def __init__(self, *args, directory=None, **kwargs):
+        self.db = DB()
+        super().__init__(*args, **kwargs)
+
     def mime_type(self):
         for ext in [
             # html, js and css
@@ -21,18 +35,41 @@ class myHandler(BaseHTTPRequestHandler):
 
         raise ValueError("unknown file extension")
 
+    def do_POST(self):
+        print(self.path)
+
     # Handler for the GET requests
     def do_GET(self):
-        if self.path == "/":
-            self.path = "/index.html"
-
+        # Open the static file requested and send it
         try:
-            # Open the static file requested and send it
-            f = open(f"{curdir}{sep}{self.path}")
+            if self.path == "/":
+                self.path = "/index.html"
+
+                # name = "Reece"
+                name = self.db.get_name()
+
+                f = open(f"{curdir}{sep}public{sep}{self.path}")
+                jinja_template = Template(f.read())
+                page = jinja_template.render(name=name)
+
+            
+            # cookies = self.headers.get('Cookie')
+            # print(cookies)
+
+
+            f = open(f"{curdir}{sep}public{sep}{self.path}")
+            jinja_template = Template(f.read())
+
+            if self.path == "/help.html":
+                print("DIODE")
+                page = jinja_template.render()
+
+
             self.send_response(200)
             self.send_header("Content-type", self.mime_type())
+            # self.send_header("Set-Cookie", "user=reece")
             self.end_headers()
-            self.wfile.write(f.read().encode())    # NEEDED TO USE ENCODE() - TypeError: a bytes-like object is required, not 'str'
+            self.wfile.write(page.encode())    # NEEDED TO USE ENCODE() - TypeError: a bytes-like object is required, not 'str'
             f.close()
             return
 
@@ -45,7 +82,8 @@ PORT_NUMBER = 8000
 try:
     # Create a web server and define the handler to manage the
     # incoming request
-    server = HTTPServer(("", PORT_NUMBER), myHandler)
+
+    server = HTTPServer(("", PORT_NUMBER), MyHandler)
     print(f"Started httpserver on port {PORT_NUMBER}.")
     print(f"Visit http://localhost:{PORT_NUMBER}/ or press Ctrl + C to exit.")
 
