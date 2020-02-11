@@ -93,18 +93,26 @@ class MyHandler(BaseHTTPRequestHandler):
                     page = jinja_template.render(table_entries=table_entries)
                 
                 elif self.path == "/leaderboard/school.html":
+
+                    schools_list = self.db.fetch_all_schools()
+
                     table_entries = None
+                    school_name = None
                     try:
                         cookies = SimpleCookie(self.headers.get('Cookie'))
                         s_id = cookies['school_id'].value
-                        print(s_id)
 
                         if s_id:
                             table_entries = self.db.fetch_leaderboard_school(s_id)
+                            school_name = self.db.fetch_school_name(s_id)
 
                     except:
                         pass
-                    page = jinja_template.render(table_entries=table_entries)
+
+                    print(schools_list)
+                    print(table_entries)
+                    print(school_name)
+                    page = jinja_template.render(schools_list=schools_list, table_entries=table_entries, school_name=school_name)
 
 
             
