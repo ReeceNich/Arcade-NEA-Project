@@ -98,9 +98,7 @@ class DatabaseManager:
         """)
         return self.cursor.fetchone()[0]
 
-    def fetch_leaderboard_school(self, u_id):
-        s_id = 1
-
+    def fetch_leaderboard_school(self, s_id):
         self.cursor.execute(f"""
         SELECT QuestionAnswered.user_id, Users.name, sum(QuestionDifficulty.difficulty_id) FROM QuestionAnswered 
         JOIN QuestionDifficulty ON QuestionAnswered.question_id = QuestionDifficulty.question_id
