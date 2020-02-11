@@ -1,8 +1,9 @@
+from functools import partial
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from os import curdir, sep
 from jinja2 import Template, Environment, FileSystemLoader
-from database_manager import DatabaseManager
-import psycopg2
+#from database_manager import DatabaseManager
+
 
 from http import cookies
 
@@ -10,8 +11,8 @@ from http import cookies
 # This class handles any incoming request from
 # the browser
 class MyHandler(BaseHTTPRequestHandler):
-    def __init__(self, *args, directory=None, **kwargs):
-        self.db = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
+    def __init__(self, db, *args, directory=None, **kwargs):
+        self.db = db
         super().__init__(*args, **kwargs)
 
     def mime_type(self):
@@ -37,6 +38,7 @@ class MyHandler(BaseHTTPRequestHandler):
     # Handler for the GET requests
     def do_GET(self):
         # Open the static file requested and send it.
+        print(f"{curdir}{sep}website{sep}public{sep}{self.path}")
         try:
             # cookies = self.headers.get('Cookie')
             # print(cookies)
@@ -47,12 +49,12 @@ class MyHandler(BaseHTTPRequestHandler):
                 name = "Reece"
                 # name = self.db.get_name()
 
-                f = open(f"{curdir}{sep}public{sep}{self.path}") # open the web page file
+                f = open(f"{curdir}{sep}website{sep}public{sep}{self.path}") # open the web page file
                 jinja_template = Template(f.read()) # load the web page into the jinja_template engine
                 page = jinja_template.render(name=name) # render the web page with all the variables
 
             else:
-                f = open(f"{curdir}{sep}public{sep}{self.path}")
+                f = open(f"{curdir}{sep}website{sep}public{sep}{self.path}")
                 jinja_template = Template(f.read())
 
                 if self.path == "/help.html":
@@ -95,14 +97,16 @@ class MyHandler(BaseHTTPRequestHandler):
             self.send_error(404, f"File Not Found: {self.path}")
 
 
-if __name__ == "__main__":
+def run(db):
     PORT_NUMBER = 8000
 
     try:
         # Create a web server and define the handler to manage the
         # incoming request
+        
+        handler = partial(MyHandler, db) # allows you to pass argument into the handler class!
 
-        server = HTTPServer(("", PORT_NUMBER), MyHandler)
+        server = HTTPServer(("", PORT_NUMBER), handler)
         print(f"Started httpserver on port {PORT_NUMBER}.")
         print(f"Visit http://localhost:{PORT_NUMBER}/ or press Ctrl + C to exit.")
 
@@ -112,3 +116,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("^C received, shutting down the web server")
         server.socket.close()
+
+if __name__ == "__main__":
+    print("Please run using the other run_webserver.py")
