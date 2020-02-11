@@ -134,6 +134,21 @@ class DatabaseManager:
         return records
 
 
+    def fetch_leaderboard_global(self):
+        self.cursor.execute(f"""
+        SELECT QuestionAnswered.user_id, Users.name, sum(QuestionDifficulty.difficulty_id), School.name FROM QuestionAnswered 
+        JOIN QuestionDifficulty ON QuestionAnswered.question_id = QuestionDifficulty.question_id
+        JOIN Users ON QuestionAnswered.user_id = Users.id
+        JOIN School on Users.school_id = School.id
+        WHERE QuestionAnswered.correctly_answered = true
+        GROUP BY QuestionAnswered.user_id, Users.name, School.id
+        """)
+        records = []
+        for i in self.cursor:
+            records.append(i)
+        return records
+
+
     def insert_question(self, data):
         self.cursor.execute(f"""
         INSERT INTO Question (question, answer, incorrect_1, incorrect_2, incorrect_3)
