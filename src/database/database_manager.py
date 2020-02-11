@@ -98,6 +98,18 @@ class DatabaseManager:
         """)
         return self.cursor.fetchone()[0]
 
+    def fetch_all_schools(self):
+        self.cursor.execute(f"""
+        SELECT id, name FROM School
+        """)
+        return self.cursor.fetchall()
+    
+    def fetch_school_name(self, s_id):
+        self.cursor.execute(f"""
+        SELECT name FROM School WHERE id = {s_id}
+        """)
+        return self.cursor.fetchone()[0]
+
     def fetch_leaderboard_school(self, s_id):
         self.cursor.execute(f"""
         SELECT QuestionAnswered.user_id, Users.name, sum(QuestionDifficulty.difficulty_id) FROM QuestionAnswered 
