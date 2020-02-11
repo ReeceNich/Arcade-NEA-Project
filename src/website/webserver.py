@@ -1,5 +1,6 @@
 from functools import partial
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.cookies import SimpleCookie
 from os import curdir, sep
 from jinja2 import Template, Environment, FileSystemLoader
 #from database_manager import DatabaseManager
@@ -32,13 +33,35 @@ class MyHandler(BaseHTTPRequestHandler):
         raise ValueError("unknown file extension")
 
     def do_POST(self):
-        print(self.path)
-        print("HUZZZAHHHHH")
+        content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
+        post_data = self.rfile.read(content_length) # <--- Gets the data itself
+        
+        post_data = str(post_data)
+
+        if self.path == "/leaderboard/school.html":
+            try:
+                s_id = post_data[post_data.find('=')+1:-1] # finds the = sign and assigns value after.
+                print(post_data)
+                print(s_id)
+
+                self.send_response(301)
+                self.send_header("Location", "/leaderboard/school.html")
+                self.send_header("Set-Cookie", f"school_id={s_id}") # stores value in a cookie.
+                self.end_headers()
+            except:
+                self.send_response(301)
+                self.send_header("Location", "/leaderboard/school.html")
+                self.end_headers()
+                
+
+        else:
+            self.send_response(301)
+            self.send_header("Location", '/')
+            self.end_headers()
 
     # Handler for the GET requests
     def do_GET(self):
-        # Open the static file requested and send it.
-        print(f"{curdir}{sep}website{sep}public{sep}{self.path}")
+        # Open the static file requested and sends it.
         try:
             # cookies = self.headers.get('Cookie')
             # print(cookies)
@@ -65,30 +88,26 @@ class MyHandler(BaseHTTPRequestHandler):
                     page = jinja_template.render()
                 
                 elif self.path == "/leaderboard/global.html":
-                    table_entries = [
-                        {
-                            'name': 'Reece',
-                            'score': 420
-                        },
-                        {
-                            'name': 'Louis',
-                            'score': 69
-                        },
-                        {
-                            'name': 'Olly',
-                            'score': 1
-                        },
-                        {
-                            'name': 'Treeve',
-                            'score': -999
-                        }
-                    ]
-
                     table_entries = self.db.fetch_leaderboard_global()
                     print(table_entries)
                     page = jinja_template.render(table_entries=table_entries)
+                
+                elif self.path == "/leaderboard/school.html":
+                    table_entries = None
+                    try:
+                        cookies = SimpleCookie(self.headers.get('Cookie'))
+                        s_id = cookies['school_id'].value
+                        print(s_id)
+
+                        if s_id:
+                            table_entries = self.db.fetch_leaderboard_school(s_id)
+
+                    except:
+                        pass
+                    page = jinja_template.render(table_entries=table_entries)
 
 
+            
             self.send_response(200)
             self.send_header("Content-type", self.mime_type())
             # self.send_header("Set-Cookie", "user=reece")
