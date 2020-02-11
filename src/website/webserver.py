@@ -1,22 +1,17 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from os import curdir, sep
-from jinja2 import Template
+from jinja2 import Template, Environment, FileSystemLoader
+from database_manager import DatabaseManager
+import psycopg2
 
 from http import cookies
 
-
-class DB():
-    def __init__(self):
-        pass
-
-    def get_name(self):
-        return "Reece"
 
 # This class handles any incoming request from
 # the browser
 class MyHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, directory=None, **kwargs):
-        self.db = DB()
+        self.db = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
         super().__init__(*args, **kwargs)
 
     def mime_type(self):
@@ -28,7 +23,7 @@ class MyHandler(BaseHTTPRequestHandler):
             # images
             (".jpg", "image/jpg"),
             (".png", "image/png"),
-            (".gif", "image/gif"),
+            (".gif", "image/gif")
         ]:
             if self.path.endswith(ext[0]):
                 return ext[1]
@@ -37,32 +32,55 @@ class MyHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         print(self.path)
+        print("HUZZZAHHHHH")
 
     # Handler for the GET requests
     def do_GET(self):
-        # Open the static file requested and send it
+        # Open the static file requested and send it.
         try:
-            if self.path == "/":
-                self.path = "/index.html"
-
-                # name = "Reece"
-                name = self.db.get_name()
-
-                f = open(f"{curdir}{sep}public{sep}{self.path}")
-                jinja_template = Template(f.read())
-                page = jinja_template.render(name=name)
-
-            
             # cookies = self.headers.get('Cookie')
             # print(cookies)
 
+            if self.path == "/": # this is required as / is actually the homepage.
+                self.path = "/index.html"
 
-            f = open(f"{curdir}{sep}public{sep}{self.path}")
-            jinja_template = Template(f.read())
+                name = "Reece"
+                # name = self.db.get_name()
 
-            if self.path == "/help.html":
-                print("DIODE")
-                page = jinja_template.render()
+                f = open(f"{curdir}{sep}public{sep}{self.path}") # open the web page file
+                jinja_template = Template(f.read()) # load the web page into the jinja_template engine
+                page = jinja_template.render(name=name) # render the web page with all the variables
+
+            else:
+                f = open(f"{curdir}{sep}public{sep}{self.path}")
+                jinja_template = Template(f.read())
+
+                if self.path == "/help.html":
+                    page = jinja_template.render()
+                
+                elif self.path == "/leaderboard/global.html":
+                    table_entries = [
+                        {
+                            'name': 'Reece',
+                            'score': 420
+                        },
+                        {
+                            'name': 'Louis',
+                            'score': 69
+                        },
+                        {
+                            'name': 'Olly',
+                            'score': 1
+                        },
+                        {
+                            'name': 'Treeve',
+                            'score': -999
+                        }
+                    ]
+
+                    table_entries = self.db.fetch_leaderboard_global()
+                    print(table_entries)
+                    page = jinja_template.render(table_entries=table_entries)
 
 
             self.send_response(200)
@@ -77,19 +95,20 @@ class MyHandler(BaseHTTPRequestHandler):
             self.send_error(404, f"File Not Found: {self.path}")
 
 
-PORT_NUMBER = 8000
+if __name__ == "__main__":
+    PORT_NUMBER = 8000
 
-try:
-    # Create a web server and define the handler to manage the
-    # incoming request
+    try:
+        # Create a web server and define the handler to manage the
+        # incoming request
 
-    server = HTTPServer(("", PORT_NUMBER), MyHandler)
-    print(f"Started httpserver on port {PORT_NUMBER}.")
-    print(f"Visit http://localhost:{PORT_NUMBER}/ or press Ctrl + C to exit.")
+        server = HTTPServer(("", PORT_NUMBER), MyHandler)
+        print(f"Started httpserver on port {PORT_NUMBER}.")
+        print(f"Visit http://localhost:{PORT_NUMBER}/ or press Ctrl + C to exit.")
 
-    # Wait forever for incoming http requests
-    server.serve_forever()
+        # Wait forever for incoming http requests
+        server.serve_forever()
 
-except KeyboardInterrupt:
-    print("^C received, shutting down the web server")
-    server.socket.close()
+    except KeyboardInterrupt:
+        print("^C received, shutting down the web server")
+        server.socket.close()
