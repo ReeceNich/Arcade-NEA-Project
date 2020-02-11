@@ -59,6 +59,10 @@ class MyHandler(BaseHTTPRequestHandler):
 
                 if self.path == "/help.html":
                     page = jinja_template.render()
+
+                elif self.path == "/leaderboard/index.html":
+                    self.path = "/leaderboard/index.html"
+                    page = jinja_template.render()
                 
                 elif self.path == "/leaderboard/global.html":
                     table_entries = [
