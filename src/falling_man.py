@@ -189,6 +189,7 @@ class MyGame(arcade.Window):
         if self.current_state == STATE_GAME_RUNNING:
             # pauses the game
             if key == arcade.key.ESCAPE:
+                print("game paused")
                 self.current_state = STATE_GAME_PAUSED
             
             # speed up everything is space is pressed (boost capability)
@@ -196,12 +197,17 @@ class MyGame(arcade.Window):
                 self.movement_speed += 5
 
 
-        if self.current_state == STATE_GAME_PAUSED:
+        elif self.current_state == STATE_GAME_PAUSED:
             # unpauses the game
             if key == arcade.key.ESCAPE:
+                print("game running")
+
                 self.current_state = STATE_GAME_RUNNING
 
-        if self.current_state == STATE_GAME_OVER:
+        elif self.current_state == STATE_GAME_OVER:
+            pass
+
+        else:
             pass
 
 
@@ -212,7 +218,7 @@ class MyGame(arcade.Window):
                 pass
 
             if key == arcade.key.SPACE:
-                    self.movement_speed -= 5
+                self.movement_speed -= 5
         
         if self.current_state == STATE_GAME_PAUSED:
             pass
