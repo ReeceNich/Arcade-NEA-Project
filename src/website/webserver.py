@@ -63,10 +63,12 @@ class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         # Open the static file requested and sends it.
         try:
-            # cookies = self.headers.get('Cookie')
-            # print(cookies)
+            print(self.path)
 
-            if self.path == "/": # this is required as / is actually the homepage.
+            if self.path == "/styles/style.css":
+                f = open(f"{curdir}{sep}website{sep}public{sep}{self.path}")
+
+            elif self.path == "/": # this is required as / is actually the homepage.
                 self.path = "/index.html"
 
                 name = "Reece"
@@ -93,7 +95,6 @@ class MyHandler(BaseHTTPRequestHandler):
                     page = jinja_template.render(table_entries=table_entries)
                 
                 elif self.path == "/leaderboard/school.html":
-
                     schools_list = self.db.fetch_all_schools()
 
                     table_entries = None
@@ -113,14 +114,23 @@ class MyHandler(BaseHTTPRequestHandler):
                     print(table_entries)
                     print(school_name)
                     page = jinja_template.render(schools_list=schools_list, table_entries=table_entries, school_name=school_name)
+                else:
+                    pass
 
-
-            
             self.send_response(200)
             self.send_header("Content-type", self.mime_type())
             # self.send_header("Set-Cookie", "user=reece")
             self.end_headers()
-            self.wfile.write(page.encode())    # NEEDED TO USE ENCODE() - TypeError: a bytes-like object is required, not 'str'
+
+            # if page that means its a jinja webpage (html). else, it must be css or other file type.            
+            try:
+                if page:
+                    self.wfile.write(page.encode())
+            except:
+                f_content = f.read()
+                print(f_content)
+                self.wfile.write(f_content.encode())
+
             f.close()
             return
 
