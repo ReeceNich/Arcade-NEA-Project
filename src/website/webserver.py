@@ -53,6 +53,26 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.send_header("Location", "/leaderboard/school.html")
                 self.end_headers()
                 
+        if self.path == "/leaderboard/subject.html":
+            try:
+                print(post_data)
+                school_id = post_data[post_data.find('=')+1:post_data.find("&")] # finds the first = sign and assigns value after but before &.
+                post_data = post_data[post_data.find("&"):] # deletes the first part of the data.
+                subject_id = post_data[post_data.find('=')+1:-1]
+
+                print(post_data)
+                print(f"school id {school_id}")
+                print(f"subject id {subject_id}")
+
+                self.send_response(301)
+                self.send_header("Location", "/leaderboard/subject.html")
+                self.send_header("Set-Cookie", f"school_id={school_id}") # stores value in a cookie.
+                self.send_header("Set-Cookie", f"subject_id={subject_id}") # stores value in a cookie.
+                self.end_headers()
+            except:
+                self.send_response(301)
+                self.send_header("Location", "/leaderboard/subject.html")
+                self.end_headers()
 
         else:
             self.send_response(301)
@@ -114,6 +134,36 @@ class MyHandler(BaseHTTPRequestHandler):
                     print(table_entries)
                     print(school_name)
                     page = jinja_template.render(schools_list=schools_list, table_entries=table_entries, school_name=school_name)
+                
+                elif self.path == "/leaderboard/subject.html":
+                    schools_list = self.db.fetch_all_schools()
+                    subjects_list = self.db.fetch_all_subjects()
+
+                    table_entries = None
+                    school_name = None
+                    subject_name = None
+                    try:
+                        cookies = SimpleCookie(self.headers.get('Cookie'))
+                        school_id = cookies['school_id'].value
+                        subject_id = cookies['subject_id'].value
+                        print(f"school id {school_id}, subject id {subject_id}")
+
+                        if school_id and subject_id:
+                            table_entries = self.db.fetch_leaderboard_school_subject(school_id, subject_id)
+                            school_name = self.db.fetch_school_name(school_id)
+                            subject_name = self.db.fetch_subject_name(subject_id)
+
+                            print(f"school name, subject name {school_name}, {subject_name}")
+
+                    except:
+                        pass
+
+                    print(schools_list)
+                    print(table_entries)
+                    print(school_name)
+                    page = jinja_template.render(schools_list=schools_list, table_entries=table_entries, school_name=school_name, subjects_list=subjects_list, subject_name=subject_name)
+                
+                
                 else:
                     pass
 
@@ -128,7 +178,6 @@ class MyHandler(BaseHTTPRequestHandler):
                     self.wfile.write(page.encode())
             except:
                 f_content = f.read()
-                print(f_content)
                 self.wfile.write(f_content.encode())
 
             f.close()
