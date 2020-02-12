@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles/style.css">
+    <title>School Leaderboard | Falling Man</title>
+</head>
+<body>
+    <a href="/">Home</a>
+    <a href="/leaderboard/index.html">Leaderboards</a>
+
+    <h1>Subject Leaderboard</h1>
+
+    <form action="/leaderboard/subject.html" method="POST">
+        <select name="school_id">
+            {% for school in schools_list %}
+                <option value='{{ school[0] }}'>{{ school[1] }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="subject_id">
+            {% for subject in subjects_list %}
+                <option value='{{ subject[0] }}'>{{ subject[1] }}</option>
+            {% endfor %}
+        </select>
+        
+        <input type="submit" value="Go!">
+    </form>
+    
+    <h2>Results for: {{ subject_name }} at {{ school_name }}</h2>
+    {% if table_entries %}
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Score</th>
+            </tr>
+            {% for row in table_entries %}
+                <tr>
+                    <td>{{ row[1] }}</td>
+                    <td>{{ row[2] }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No results... sorry.</p>
+    {% endif %}
+
+</body>
+</html>
+
+
