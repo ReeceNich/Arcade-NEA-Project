@@ -21,9 +21,9 @@
         
         <input type="submit" value="Go!">
     </form>
-    
+
+    <h2>Results for: {{ school_name }}</h2>
     {% if table_entries %}
-        <h2>Results for: {{ school_name }}</h2>
         <table>
             <tr>
                 <th>Name</th>
@@ -36,6 +36,8 @@
                 </tr>
             {% endfor %}
         </table>
+    {% else %}
+        <p>No results... sorry.</p>
     {% endif %}
 
 </body>
