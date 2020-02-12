@@ -98,17 +98,45 @@ class DatabaseManager:
         """)
         return self.cursor.fetchone()[0]
 
+    def fetch_all_subjects(self):
+        self.cursor.execute(f"""
+        SELECT id, name FROM Subject
+        """)
+        return self.cursor.fetchall()
+
     def fetch_all_schools(self):
         self.cursor.execute(f"""
         SELECT id, name FROM School
         """)
         return self.cursor.fetchall()
     
-    def fetch_school_name(self, s_id):
+    def fetch_subject_name(self, sub_id):
         self.cursor.execute(f"""
-        SELECT name FROM School WHERE id = {s_id}
+        SELECT name FROM Subject WHERE id = '{sub_id}'
         """)
         return self.cursor.fetchone()[0]
+    
+    def fetch_school_name(self, school_id):
+        self.cursor.execute(f"""
+        SELECT name FROM School WHERE id = {school_id}
+        """)
+        return self.cursor.fetchone()[0]
+
+    def fetch_leaderboard_school_subject(self, school_id, subject_id):
+        self.cursor.execute(f"""
+        SELECT QuestionAnswered.user_id, Users.name, sum(QuestionDifficulty.difficulty_id) FROM QuestionAnswered 
+        JOIN QuestionDifficulty ON QuestionAnswered.question_id = QuestionDifficulty.question_id
+        JOIN Users ON QuestionAnswered.user_id = Users.id
+        JOIN School ON Users.school_id = School.id
+        JOIN QuestionSubject ON QuestionAnswered.question_id = QuestionSubject.question_id
+        WHERE QuestionAnswered.correctly_answered = true AND Users.school_id = {school_id} AND QuestionSubject.subject_id = '{subject_id}'
+        GROUP BY QuestionAnswered.user_id, Users.name
+        ORDER BY sum(QuestionDifficulty.difficulty_id) DESC
+        """)
+        records = []
+        for i in self.cursor:
+            records.append(i)
+        return records
 
     def fetch_leaderboard_school(self, s_id):
         self.cursor.execute(f"""
@@ -118,31 +146,13 @@ class DatabaseManager:
         JOIN School on Users.school_id = School.id
         WHERE QuestionAnswered.correctly_answered = true AND Users.school_id = {s_id}
         GROUP BY QuestionAnswered.user_id, Users.name
+        ORDER BY sum(QuestionDifficulty.difficulty_id) DESC
         """)
 
-        # this fetches every users CORRECTLY ANSWERED entries, along with their school and user info.
-        """
-        SELECT * FROM QuestionAnswered 
-        JOIN QuestionDifficulty ON QuestionAnswered.question_id = QuestionDifficulty.question_id
-        JOIN Users ON QuestionAnswered.user_id = Users.id
-        JOIN School on Users.school_id = School.id
-        WHERE QuestionAnswered.correctly_answered = true;
-        """
-
-        # returns just user ID and sum of the total correctly answered.
-        """
-        SELECT QuestionAnswered.user_id, sum(QuestionDifficulty.difficulty_id) FROM QuestionAnswered 
-        JOIN QuestionDifficulty ON QuestionAnswered.question_id = QuestionDifficulty.question_id
-        JOIN Users ON QuestionAnswered.user_id = Users.id
-        JOIN School on Users.school_id = School.id
-        WHERE QuestionAnswered.correctly_answered = true
-        GROUP BY QuestionAnswered.user_id;
-        """
         records = []
         for i in self.cursor:
             records.append(i)
         return records
-
 
     def fetch_leaderboard_global(self):
         self.cursor.execute(f"""
@@ -152,6 +162,7 @@ class DatabaseManager:
         JOIN School on Users.school_id = School.id
         WHERE QuestionAnswered.correctly_answered = true
         GROUP BY QuestionAnswered.user_id, Users.name, School.id
+        ORDER BY sum(QuestionDifficulty.difficulty_id) DESC
         """)
         records = []
         for i in self.cursor:
