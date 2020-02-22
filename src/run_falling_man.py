@@ -1,18 +1,31 @@
 from login_window import Login
 
-login = Login()
-login.draw_window()
+authenticated = None
 
-if login.email and login.passcode:
-    from falling_man import *
+while not authenticated:
 
-    window = MyGame(width, height, title, login.email, login.passcode)
-    window.setup()
+    login = Login()
+    login.draw_window()
 
-    print(login.email)
-    print(login.passcode)
+    if login.email and login.passcode:
+        from falling_man import *
 
-    arcade.run()
+        authenticated = db.auth_user(login.email, login.passcode)
+        
+        if authenticated:
+            print("Successfully authenticated")
+            window = MyGame(width, height, title, login.email, login.passcode)
+            window.setup()
 
-else:
-    print("didnt enter details")
+            print(login.email)
+            print(login.passcode)
+
+            arcade.run()
+        
+        else:
+            print("Failed to authenticate...")
+            continue
+
+
+    else:
+        print("didnt enter details")
