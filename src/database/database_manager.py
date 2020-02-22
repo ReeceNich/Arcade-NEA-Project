@@ -73,6 +73,18 @@ class DatabaseManager:
         self.conn.commit()
 
     
+    def auth_user(self, email, passcode):
+        self.cursor.execute(f"""
+        SELECT * FROM Users WHERE email = '{email}' and passcode = '{passcode}'
+        """)
+        record = self.cursor.fetchone()
+        print(f"auth user {record}")
+        if record:
+            return True
+        else:
+            return False
+
+
     def fetch_all_questions(self):
         self.cursor.execute("""
         SELECT * FROM Question JOIN QuestionDifficulty ON Question.id = QuestionDifficulty.question_id
