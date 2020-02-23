@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles/style.css">
+    <title>User Question Analysis | Falling Man</title>
+</head>
+<body>
+    <a href="/">Home</a>
+    <a href="/leaderboard/index.html">Leaderboards</a>
+    <a href="/analysis/index.html">Analysis</a>
+
+
+    <h1>User Question Analysis</h1>
+
+    <form action="/analysis/user_question.html" method="POST">
+
+        <select name="school_id">
+            {% for school in schools_list %}
+                <option value='{{ school[0] }}'>{{ school[1] }}</option>
+            {% endfor %}
+        </select>
+
+        {% if users_list %}
+            <select name="user_id">
+                {% for user in users_list %}
+                    <option value='{{ user[0] }}'>{{ user[1] }}</option>
+                {% endfor %}
+            </select>
+        {% endif %}
+    
+        <input type="text" name="question_id" placeholder="Question ID">
+
+
+        <!-- THIS WILL REPLACE THE QUESTION_ID TEXT BOX. All the users questions they have answered will populate the dropdown, maybe? -->
+        {% if questions_list %}
+            <select name="question_id">
+                {% for question in questions_list %}
+                    <option value='{{ question[0] }}'>{{ question[1] }}</option>
+                {% endfor %}
+            </select>
+        {% endif %}
+        
+        {% if not school_id %}
+            <input type="submit" value="Search for users">
+        {% else %}
+            <input type="submit" value="Go!">
+        {% endif %}
+
+    </form>
+    
+
+
+    <h3>Results for: '{{ user_name }}'</h3>
+    <h3>Question ID: {{ question_id }}</h3>
+    <h3>Question: '{{ question }}'</h3>
+    {% if table_entries %}
+        <table>
+            <tr>
+                <th>Correct?</th>
+                <th>Value Answered</th>
+                <th>Date and Time</th>
+            </tr>
+            {% for row in table_entries %}
+                <tr>
+                    <td>{{ row[2] }}</td>
+                    <td>{{ row[3] }}</td>
+                    <td>{{ row[4] }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No results... sorry.</p>
+    {% endif %}
+
+</body>
+</html>
+
+
