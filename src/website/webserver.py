@@ -53,7 +53,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.send_header("Location", "/leaderboard/school.html")
                 self.end_headers()
                 
-        if self.path == "/leaderboard/subject.html":
+        elif self.path == "/leaderboard/subject.html":
             try:
                 print(post_data)
                 school_id = post_data[post_data.find('=')+1:post_data.find("&")] # finds the first = sign and assigns value after but before &.
@@ -74,6 +74,33 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.send_header("Location", "/leaderboard/subject.html")
                 self.end_headers()
 
+        elif self.path == "/analysis/user_question.html":
+            try:
+                print(f"{post_data}")
+                school_id = post_data[post_data.find('=')+1:post_data.find("&")] # finds the first = sign and assigns value after but before &.
+                post_data = post_data[post_data.find("&")+1:] # deletes the first part of the data.
+                
+                print(f"{school_id}, {post_data}")
+                user_id = post_data[post_data.find('=')+1:post_data.find("&")] # finds the first = sign and assigns value after but before &.
+                post_data = post_data[post_data.find("&")+1:] # deletes the first part of the data.
+
+                print(f"{user_id}, {post_data}")
+                question_id = post_data[post_data.find('=')+1:-1]
+
+                print(f"POST: {school_id}, {user_id}, {question_id}")
+                
+                self.send_response(301)
+                self.send_header("Location", "/analysis/user_question.html")
+                self.send_header("Set-Cookie", f"school_id={school_id}") # stores value in a cookie.
+                self.send_header("Set-Cookie", f"user_id={user_id}") # stores value in a cookie.
+                self.send_header("Set-Cookie", f"question_id={question_id}") # stores value in a cookie.
+                self.end_headers()
+            except:
+                self.send_response(301)
+                self.send_header("Location", "/analysis/user_question.html")
+                self.end_headers()
+        
+        
         else:
             self.send_response(301)
             self.send_header("Location", '/')
@@ -163,7 +190,57 @@ class MyHandler(BaseHTTPRequestHandler):
                     print(school_name)
                     page = jinja_template.render(schools_list=schools_list, table_entries=table_entries, school_name=school_name, subjects_list=subjects_list, subject_name=subject_name)
                 
-                
+                elif self.path == "/analysis/index.html":
+                    page = jinja_template.render()
+
+
+                # TODO: Add the personalised question list of just all the questions a user has actually answered.
+                elif self.path == "/analysis/user_question.html":
+                    schools_list = self.db.fetch_all_schools()
+                    users_list = None
+                    questions_list = None
+
+                    table_entries = None
+                    school_name = None
+                    user_name = None
+                    question = None
+                    question_id = None
+
+                    try:
+                        cookies = SimpleCookie(self.headers.get('Cookie'))
+                        school_id = cookies['school_id'].value
+                        users_list = self.db.fetch_schools_users(school_id)
+                        
+                        user_id = cookies['user_id'].value
+                        question_id = cookies['question_id'].value
+                        print(f"school id {school_id}, user id {user_id}, question id {question_id}")
+
+                        if school_id:
+                            school_name = self.db.fetch_school_name(school_id)
+
+                        if user_id:
+                            user_name = self.db.fetch_user_name(user_id)
+
+                        if user_id and question_id:
+                            table_entries = self.db.fetch_user_question_history(user_id, question_id)
+                            question = self.db.fetch_question(question_id)[1]
+
+
+                    except:
+                        pass
+
+                    print(f"TABLE ENTRIES {table_entries}")
+                    print("ALLLLLL DATA")
+                    print(f"""{schools_list},
+                              {users_list},
+                              {questions_list},
+                              {user_name},
+                              {question},
+                              {school_name},
+                              {table_entries}""")
+                    page = jinja_template.render(schools_list=schools_list, users_list=users_list, questions_list=questions_list, user_name=user_name, question_id=question_id, question=question, school_name=school_name, table_entries=table_entries)
+
+
                 else:
                     pass
 
