@@ -318,11 +318,14 @@ class MyGame(arcade.Window):
             # update the database
             for entity in self.QuestionsAnswered:
                 db.insert_question_answered(entity)
+                print(f"Inserting entity question ID: {entity.question_id}")
             self.QuestionsAnswered = []
         
         elif self.current_state == STATE_GAME_PAUSED:
+            # update the database
             for entity in self.QuestionsAnswered:
                 db.insert_question_answered(entity)
+                print(f"Inserting entity question ID: {entity.question_id}")
             self.QuestionsAnswered = []
 
         else:
@@ -405,7 +408,7 @@ if __name__ == "__main__":
     # login = Login()
     # login.draw_window()
 
-    window = MyGame(width, height, title, "reece@cowes.com", 1234)
+    window = MyGame(width, height, title, "reece@cowes.com", 5678)
     window.setup()
 
 
