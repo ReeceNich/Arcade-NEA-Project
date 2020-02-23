@@ -62,7 +62,7 @@ class DatabaseManager:
 
         self.cursor.execute("""
         CREATE TABLE QuestionAnswered (user_id INTEGER NOT NULL, question_id INTEGER NOT NULL, correctly_answered BOOLEAN NOT NULL, actual_answered_value TEXT NOT NULL, time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY(user_id, question_id),
+        PRIMARY KEY(user_id, question_id, time),
         FOREIGN KEY(user_id) REFERENCES Users (id) ON DELETE CASCADE,
         FOREIGN KEY(question_id) REFERENCES Question (id) ON DELETE CASCADE
         )
@@ -83,6 +83,10 @@ class DatabaseManager:
             return False
 
 
+    #
+    #   DATA FETCHING FUNCTIONS
+    #
+
     def fetch_all_questions(self):
         self.cursor.execute("""
         SELECT * FROM Question JOIN QuestionDifficulty ON Question.id = QuestionDifficulty.question_id
@@ -94,11 +98,28 @@ class DatabaseManager:
 
         return question
 
+
+    def fetch_question(self, question_id):
+        self.cursor.execute(f"""
+        SELECT * FROM Question
+        JOIN QuestionDifficulty ON Question.id = QuestionDifficulty.question_id
+        JOIN QuestionSubject ON Question.id = QuestionSubject.question_id
+        WHERE Question.id = {question_id}
+        """)
+        return self.cursor.fetchone()
+
+
     def fetch_user(self, email):
         self.cursor.execute(f"""
         SELECT * FROM Users WHERE email = '{email}'
         """)
         return self.cursor.fetchone()
+    
+    def fetch_user_name(self, user_id):
+        self.cursor.execute(f"""
+        SELECT name FROM Users WHERE id = '{user_id}'
+        """)
+        return self.cursor.fetchone()[0]
 
     def fetch_user_total_score(self, u_id):
         self.cursor.execute(f"""
@@ -131,6 +152,13 @@ class DatabaseManager:
         SELECT name FROM School WHERE id = {school_id}
         """)
         return self.cursor.fetchone()[0]
+
+    def fetch_schools_users(self, school_id):
+        self.cursor.execute(f"""
+        SELECT * FROM Users WHERE school_id = {school_id}
+        """)
+        return self.cursor.fetchall()
+
 
     def fetch_leaderboard_school_subject(self, school_id, subject_id):
         self.cursor.execute(f"""
@@ -179,7 +207,28 @@ class DatabaseManager:
             records.append(i)
         return records
 
-    # todo; fix this function. 
+    def fetch_user_question_history(self, user_id, question_id):
+        self.cursor.execute(f"""
+        SELECT * FROM QuestionAnswered
+        WHERE user_id = {user_id} AND question_id = {question_id}
+        ORDER BY time DESC
+        """)
+        return self.cursor.fetchall()
+
+    def fetch_user_all_questions_history(self, user_id):
+        self.cursor.execute(f"""
+        SELECT * FROM QuestionAnswered
+        WHERE user_id = {user_id}
+        ORDER BY question_id, time
+        """)
+        return self.cursor.fetchall()
+
+
+    #
+    #   INSERTING FUNCTIONS
+    #
+
+    # todo; fix this function. DONE
     def add_question(self, question_class):
         question = question_class
         q_id = self.insert_question(question)
@@ -251,11 +300,17 @@ class DatabaseManager:
         self.cursor.execute(f"""
         INSERT INTO QuestionAnswered (user_id, question_id, correctly_answered, actual_answered_value)
         VALUES ({data.user_id}, {data.question_id}, {data.correctly_answered}, '{data.actual_answered_value}')
-        ON CONFLICT (user_id, question_id)
-        DO UPDATE SET correctly_answered = Excluded.correctly_answered, actual_answered_value = Excluded.actual_answered_value 
         """)
+        # Removed this. Will store the result every time, and most these can be stored by date/time.
+        # ON CONFLICT (user_id, question_id)
+        # DO UPDATE SET correctly_answered = Excluded.correctly_answered, actual_answered_value = Excluded.actual_answered_value 
+
         self.conn.commit()
     
+
+    #
+    #   SETUP FUNCTIONS
+    #
     
     def setup_dummy_data(self):
         self.insert_difficulty(Difficulty('Very Easy', 1))
@@ -319,11 +374,18 @@ class QuestionAnswered:
 
 if __name__ == "__main__":
     d = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
+    
+    def set_it_up():
 
-    print("Setting up")
-    d.setup()
+        print("Setting up")
+        d.setup()
 
-    print("Adding dummy data")
-    d.setup_dummy_data()
+        print("Adding dummy data")
+        d.setup_dummy_data()
 
-    print("Done")
+        print("Done")
+
+    print(d.fetch_user_question_history(1, 1))
+    print(d.fetch_user_all_questions_history(1))
+    print(d.fetch_question(1))
+    
