@@ -19,7 +19,6 @@ class DatabaseManager:
         GRANT ALL ON SCHEMA public TO postgres;
         GRANT ALL ON SCHEMA public TO public;
         """)
-
         self.conn.commit()
 
 
@@ -62,13 +61,12 @@ class DatabaseManager:
         """)
 
         self.cursor.execute("""
-        CREATE TABLE QuestionAnswered (user_id INTEGER NOT NULL, question_id INTEGER NOT NULL, correctly_answered BOOLEAN NOT NULL, actual_answered_value TEXT NOT NULL,
+        CREATE TABLE QuestionAnswered (user_id INTEGER NOT NULL, question_id INTEGER NOT NULL, correctly_answered BOOLEAN NOT NULL, actual_answered_value TEXT NOT NULL, time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY(user_id, question_id),
         FOREIGN KEY(user_id) REFERENCES Users (id) ON DELETE CASCADE,
         FOREIGN KEY(question_id) REFERENCES Question (id) ON DELETE CASCADE
         )
         """)
-        
 
         self.conn.commit()
 
@@ -181,6 +179,15 @@ class DatabaseManager:
             records.append(i)
         return records
 
+    # todo; fix this function. 
+    def add_question(self, question_class):
+        question = question_class
+        q_id = self.insert_question(question)
+        question.question_id = q_id
+
+        self.insert_question_difficulty(question)
+        self.insert_question_subject(question)
+
 
     def insert_question(self, data):
         self.cursor.execute(f"""
@@ -189,7 +196,6 @@ class DatabaseManager:
         RETURNING id;
         """)
         q_id = self.cursor.fetchone()[0]
-        print("THE ID IS:", q_id)
         self.conn.commit()
         return q_id
     
@@ -250,6 +256,24 @@ class DatabaseManager:
         """)
         self.conn.commit()
     
+    
+    def setup_dummy_data(self):
+        self.insert_difficulty(Difficulty('Very Easy', 1))
+        self.insert_difficulty(Difficulty('Easy', 2))
+        self.insert_difficulty(Difficulty('Medium', 3))
+        self.insert_difficulty(Difficulty('Hard', 4))
+        self.insert_difficulty(Difficulty('Very Hard', 5))
+
+        self.insert_subject(Subject('MATHS', 'Maths'))
+
+        self.insert_school(School('Cowes Enterprise College'))
+
+        self.add_question( Question("What is 10x10?", "100", "110", "1010", "120", "MATHS", "1") )
+        self.add_question( Question("What is 25% of 8?", '2', '4', '3', '1', 'MATHS', '3') )
+
+        self.insert_user(User('Reece', '5678', 'reece@cowes.com', '1'))
+
+    
 
 class School:
     def __init__(self, name, school_id=None):
@@ -295,9 +319,11 @@ class QuestionAnswered:
 
 if __name__ == "__main__":
     d = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
-    # print(d.fetch_user_total_score(2))
-    # print(d.fetch_user_total_score(3))
-    records = d.fetch_leaderboard_school(2)
-    print("ID  |  Name  |  Score")
-    for i in records:
-        print("{:<7d}{:<9s}{:<5d}".format(i[0], i[1], i[2]))
+
+    print("Setting up")
+    d.setup()
+
+    print("Adding dummy data")
+    d.setup_dummy_data()
+
+    print("Done")
