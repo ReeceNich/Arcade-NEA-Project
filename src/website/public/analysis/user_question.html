@@ -16,45 +16,67 @@
 
     <form action="/analysis/user_question.html" method="POST">
 
+        <!-- List of schools in the database. -->
         <select name="school_id">
             {% for school in schools_list %}
-                <option value='{{ school[0] }}'>{{ school[1] }}</option>
+                {% if school_name == school[1] %}
+                    <option value='{{ school[0] }}' selected>{{ school[1] }}</option>
+                {% else %}
+                    <option value='{{ school[0] }}'>{{ school[1] }}</option>
+                {% endif %}
             {% endfor %}
         </select>
 
+        <!-- If they have chosen a school, display a list of users who attend that school. -->
         {% if users_list %}
             <select name="user_id">
                 {% for user in users_list %}
-                    <option value='{{ user[0] }}'>{{ user[1] }}</option>
+                    {% if user_name == user[1] %}
+                        <option value='{{ user[0] }}' selected>{{ user[1] }}</option>
+                    {% else %}
+                        <option value='{{ user[0] }}'>{{ user[1] }}</option>
+                    {% endif %}
                 {% endfor %}
             </select>
+        
+            <!-- Question ID box. -->
+            <input type="text" name="question_id" placeholder="Question ID">
+        
+        
+            <!-- THIS WILL REPLACE THE QUESTION_ID TEXT BOX. All the users questions they have answered will populate the dropdown, maybe? -->
+            {% if questions_list %}
+                <select name="question_id">
+                    {% for question in questions_list %}
+                        <option value='{{ question[0] }}'>{{ question[1] }}</option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+    
+    
         {% endif %}
     
-        <input type="text" name="question_id" placeholder="Question ID">
-
-
-        <!-- THIS WILL REPLACE THE QUESTION_ID TEXT BOX. All the users questions they have answered will populate the dropdown, maybe? -->
-        {% if questions_list %}
-            <select name="question_id">
-                {% for question in questions_list %}
-                    <option value='{{ question[0] }}'>{{ question[1] }}</option>
-                {% endfor %}
-            </select>
-        {% endif %}
-        
-        {% if not school_id %}
-            <input type="submit" value="Search for users">
-        {% else %}
+        <!-- changes submit field depending on whether they've selected a school or not. -->
+        {% if school_name %}
             <input type="submit" value="Go!">
+        {% else %}
+            <input type="submit" value="Search for users">
         {% endif %}
 
     </form>
     
 
+    <!-- Little headings with the details entered by the user -->
+    {% if user_name %}
+        <h3>Results for: '{{ user_name }}'</h3>
+    {% endif %}
+    {% if question_id %}
+        <h3>Question ID: {{ question_id }}</h3>
+    {% endif %}
+    {% if question %}
+        <h3>Question: '{{ question }}'</h3>
+    {% endif %}
 
-    <h3>Results for: '{{ user_name }}'</h3>
-    <h3>Question ID: {{ question_id }}</h3>
-    <h3>Question: '{{ question }}'</h3>
+    <!-- Table of the results -->
     {% if table_entries %}
         <table>
             <tr>
@@ -71,7 +93,7 @@
             {% endfor %}
         </table>
     {% else %}
-        <p>No results... sorry.</p>
+        <p>No results... sorry. Try refining your search criteria.</p>
     {% endif %}
 
 </body>
