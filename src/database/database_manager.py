@@ -223,6 +223,15 @@ class DatabaseManager:
         """)
         return self.cursor.fetchall()
 
+    # TODO: Needs to fetch all the users questions theyve answered. But multiple questions are repeated.. need to return each question_id only once.
+    def fetch_user_all_questions_answered(self, user_id):
+        self.cursor.execute(f"""
+        SELECT * FROM QuestionAnswered
+        WHERE user_id = {user_id}
+        ORDER BY question_id, time
+        """)
+        return self.cursor.fetchall()
+
 
     #
     #   INSERTING FUNCTIONS
@@ -322,9 +331,16 @@ class DatabaseManager:
         self.insert_subject(Subject('MATHS', 'Maths'))
 
         self.insert_school(School('Cowes Enterprise College'))
+        self.insert_school(School('The International School for Spies'))
+        
 
         self.add_question( Question("What is 10x10?", "100", "110", "1010", "120", "MATHS", "1") )
         self.add_question( Question("What is 25% of 8?", '2', '4', '3', '1', 'MATHS', '3') )
+        self.add_question( Question("How many sides does a pentagon have?", '5', '4', '6', '7', 'MATHS', '1') )
+        self.add_question( Question("What is 25+7", '32', '33', '31', '34', 'MATHS', '3') )
+        self.add_question( Question("Whats the gradient of y=3x+4", '3', '3/4', '4/3', '4', 'MATHS', '5') )
+
+
 
         self.insert_user(User('Reece', '5678', 'reece@cowes.com', '1'))
 
@@ -385,7 +401,8 @@ if __name__ == "__main__":
 
         print("Done")
 
-    print(d.fetch_user_question_history(1, 1))
-    print(d.fetch_user_all_questions_history(1))
-    print(d.fetch_question(1))
-    
+    # print(d.fetch_user_question_history(1, 1))
+    # print(d.fetch_user_all_questions_history(1))
+    # print(d.fetch_question(1))
+
+    # d.insert_user(User('Sir', '0000', 'sir@cowes.com', '1'))
