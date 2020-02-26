@@ -26,7 +26,12 @@ class DatabaseManager:
         self.drop_all()
 
         self.cursor.execute("""
-        CREATE TABLE Question (id SERIAL PRIMARY KEY, question TEXT NOT NULL, answer TEXT NOT NULL, incorrect_1 TEXT NOT NULL, incorrect_2 TEXT NOT NULL, incorrect_3 TEXT NOT NULL);
+        CREATE TABLE Question (id SERIAL PRIMARY KEY,
+                               question TEXT NOT NULL,
+                               answer TEXT NOT NULL,
+                               incorrect_1 TEXT NOT NULL,
+                               incorrect_2 TEXT NOT NULL,
+                               incorrect_3 TEXT NOT NULL);
         """)
         self.cursor.execute("""
         CREATE TABLE Subject (id TEXT PRIMARY KEY, name TEXT NOT NULL)
@@ -39,13 +44,18 @@ class DatabaseManager:
         """)
 
         self.cursor.execute("""
-        CREATE TABLE Users (id SERIAL PRIMARY KEY, name TEXT NOT NULL, passcode TEXT NOT NULL, email TEXT NOT NULL UNIQUE, school_id INTEGER NOT NULL,
+        CREATE TABLE Users (id SERIAL PRIMARY KEY, 
+                            name TEXT NOT NULL,
+                            passcode TEXT NOT NULL,
+                            email TEXT NOT NULL UNIQUE,
+                            school_id INTEGER NOT NULL,
         FOREIGN KEY(school_id) REFERENCES School (id) ON DELETE CASCADE
         )
         """)
 
         self.cursor.execute("""
-        CREATE TABLE QuestionSubject (question_id INTEGER NOT NULL, subject_id TEXT NOT NULL,
+        CREATE TABLE QuestionSubject (question_id INTEGER NOT NULL,
+                                      subject_id TEXT NOT NULL,
         PRIMARY KEY(question_id, subject_id),
         FOREIGN KEY(question_id) REFERENCES Question (id) ON DELETE CASCADE,
         FOREIGN KEY(subject_id) REFERENCES Subject (id) ON DELETE CASCADE
@@ -53,7 +63,8 @@ class DatabaseManager:
         """)
         
         self.cursor.execute("""
-        CREATE TABLE QuestionDifficulty (question_id INTEGER UNIQUE NOT NULL, difficulty_id INTEGER NOT NULL,
+        CREATE TABLE QuestionDifficulty (question_id INTEGER UNIQUE NOT NULL,
+                                         difficulty_id INTEGER NOT NULL,
         PRIMARY KEY(question_id, difficulty_id),
         FOREIGN KEY(question_id) REFERENCES Question (id) ON DELETE CASCADE,
         FOREIGN KEY(difficulty_id) REFERENCES Difficulty (difficulty) ON DELETE CASCADE
@@ -61,7 +72,11 @@ class DatabaseManager:
         """)
 
         self.cursor.execute("""
-        CREATE TABLE QuestionAnswered (user_id INTEGER NOT NULL, question_id INTEGER NOT NULL, correctly_answered BOOLEAN NOT NULL, actual_answered_value TEXT NOT NULL, time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        CREATE TABLE QuestionAnswered (user_id INTEGER NOT NULL,
+                                       question_id INTEGER NOT NULL,
+                                       correctly_answered BOOLEAN NOT NULL,
+                                       actual_answered_value TEXT NOT NULL,
+                                       time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY(user_id, question_id, time),
         FOREIGN KEY(user_id) REFERENCES Users (id) ON DELETE CASCADE,
         FOREIGN KEY(question_id) REFERENCES Question (id) ON DELETE CASCADE
