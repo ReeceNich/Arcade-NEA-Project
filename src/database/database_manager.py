@@ -308,9 +308,9 @@ class DatabaseManager:
 
     #
     #   INSERTING FUNCTIONS
-    # TODO: Fix these functions!!!!
+    # 
 
-    # todo; fix this function. DONE
+    # TODO: fix this function
     def add_question(self, question_class):
         question = question_class
         q_id = self.insert_question(question)
@@ -320,74 +320,102 @@ class DatabaseManager:
         self.insert_question_subject(question)
 
 
-    def insert_question(self, data):
-        self.cursor.execute(f"""
-        INSERT INTO Question (question, answer, incorrect_1, incorrect_2, incorrect_3)
-        VALUES ('{data.question}', '{data.answer}', '{data.incorrect_1}', '{data.incorrect_2}', '{data.incorrect_3}')
-        RETURNING id;
-        """)
+    def insert_answer(self, answer_class):
+        self.cursor.execute("""
+        INSERT INTO Answer (question_id, answer_id, correct, answer)
+        """,
+        (answer_class.question_id, answer_class.answer_id, answer_class.correct, answer_class.answer))
+        self.conn.commit()
+
+    def insert_difficulty(self, difficulty_class):
+        self.cursor.execute("""
+        INSERT INTO Difficulty (id, name)
+        VALUES (%s, %s)
+        """,
+        (difficulty_class.id, difficulty_class.name))
+        self.conn.commit()
+
+    def insert_question(self, question_class):
+        self.cursor.execute("""
+        INSERT INTO Question (question, difficulty_id, topic_id, subject_id)
+        VALUES (%s, %s, %s, %s)
+        RETURNING id; """,
+        (question_class.question, question_class.difficulty_id, question_class.topic_id, question_class.subject_id))
+        
         q_id = self.cursor.fetchone()[0]
         self.conn.commit()
-        return q_id
+        return q_id  # return ID so the code knows what the new ID is.
     
-    def insert_question_difficulty(self, data):
+    def insert_question_answered(self, questionanswered_class):
         self.cursor.execute(f"""
-        INSERT INTO QuestionDifficulty (question_id, difficulty_id)
-        VALUES ('{data.question_id}', '{data.difficulty_id}')
-        """)
-        self.conn.commit()
+        INSERT INTO QuestionAnswered (user_id, question_id, answer_id)
+        VALUES (%s, %s, %s, %s)
+        """,
+        (questionanswered_class.user_id, questionanswered_class.question_id, questionanswered_class.answer_id))
 
-    def insert_question_subject(self, data):
-        self.cursor.execute(f"""
-        INSERT INTO QuestionSubject (question_id, subject_id)
-        VALUES ('{data.question_id}', '{data.subject_id}')
-        """)
         self.conn.commit()
     
-    def insert_subject(self, data):
-        self.cursor.execute(f"""
-        INSERT INTO Subject (id, name)
-        VALUES ('{data.subject_id}', '{data.name}')
-        """)
-        self.conn.commit()
-
-    def insert_difficulty(self, data):
-        self.cursor.execute(f"""
-        INSERT INTO Difficulty (difficulty, description)
-        VALUES ('{data.difficulty_id}', '{data.description}')
-        """)
-        self.conn.commit()
-
-    def insert_school(self, data):
-        self.cursor.execute(f"""
-        INSERT INTO School (name)
-        VALUES ('{data.name}')
+    def insert_school(self, school_class):
+        self.cursor.execute("""
+        INSERT INTO School (name, contact)
+        VALUES (%s, %s)
         RETURNING id;
-        """)
+        """,
+        (school_class.name, school_class.contact))
+        
         s_id = self.cursor.fetchone()[0]
         self.conn.commit()
-        return s_id
+        return s_id  # return ID so the code knows what the new ID is.
 
-    def insert_user(self, data):
-        self.cursor.execute(f"""
-        INSERT INTO Users (name, passcode, email, school_id)
-        VALUES ('{data.name}', '{data.passcode}', '{data.email}', '{data.school_id}')
+    def insert_subject(self, subject_class):
+        self.cursor.execute("""
+        INSERT INTO Subject (id, name)
+        VALUES (%s, %s)
+        """,
+        (subject_class.id, subject_class.name))
+        self.conn.commit()
+
+    def insert_teacher(self, teacher_class):
+        self.cursor.execute("""
+        INSERT INTO Teacher (username, passcode, school_id)
+        VALUES (%s, %s, %s)
         RETURNING id;
-        """)
+        """,
+        (teacher_class.username, teacher_class.passcode, teacher_class.school_id))
+        
+        t_id = self.cursor.fetchone()[0]
+        self.conn.commit()
+        return t_id  # return ID so the code knows what the new ID is.
+
+    def insert_topic(self, topic_class):
+        self.cursor.execute("""
+        INSERT INTO Topic (id, name, subject_id)
+        VALUES (%s, %s, %s)
+        """,
+        (topic_class.id, topic_class.name, topic_class.subject_id))
+        self.conn.commit()
+
+    def insert_user(self, users_class):
+        self.cursor.execute("""
+        INSERT INTO Users (name, username, passcode, nickname, year_group_id, school_id)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        RETURNING id;
+        """,
+        (users_class.name, users_class.username, users_class.passcode, users_class.nickname, users_class.year_group_id, users_class.school_id))
+        
         u_id = self.cursor.fetchone()[0]
         self.conn.commit()
-        return u_id
+        return u_id  # return ID so the code knows what the new ID is.
 
-    def insert_question_answered(self, data):
-        self.cursor.execute(f"""
-        INSERT INTO QuestionAnswered (user_id, question_id, correctly_answered, actual_answered_value)
-        VALUES ({data.user_id}, {data.question_id}, {data.correctly_answered}, '{data.actual_answered_value}')
-        """)
-        # Removed this. Will store the result every time, and most these can be stored by date/time.
-        # ON CONFLICT (user_id, question_id)
-        # DO UPDATE SET correctly_answered = Excluded.correctly_answered, actual_answered_value = Excluded.actual_answered_value 
-
+    def insert_year_group(self, yeargroup_class):
+        self.cursor.execute("""
+        INSERT INTO YearGroup (id, name)
+        VALUES (%s, %s)
+        """,
+        (yeargroup_class.id, yeargroup_class.name))
         self.conn.commit()
+
+
     
 
     #
@@ -423,7 +451,7 @@ class DatabaseManager:
 # 
 
 class School:
-    def __init__(self, id, name, contact=None):
+    def __init__(self, name, contact=None, id=None):
         self.id = id
         self.name = name
         self.contact = contact
@@ -455,7 +483,7 @@ class Topic:
 
 
 class Teacher:
-    def __init__(self, id, username, passcode, school_id):
+    def __init__(self, username, passcode, school_id, id=None):
         self.id = id
         self.username = username
         self.passcode = passcode
@@ -463,7 +491,7 @@ class Teacher:
 
 
 class User:
-    def __init__(self, id, name, username, passcode, nickname, year_group_id, school_id):
+    def __init__(self, name, username, passcode, nickname, year_group_id, school_id, id=None):
         self.id = id
         self.name = name
         self.username = username
@@ -474,7 +502,7 @@ class User:
 
 
 class Question:
-    def __init__(self, id, question, difficulty_id, topic_id, subject_id):
+    def __init__(self, question, difficulty_id, topic_id, subject_id, id=None):
         self.id = id
         self.question = question
         self.difficulty_id = difficulty_id
@@ -491,7 +519,7 @@ class Answer:
 
 
 class QuestionAnswered:
-    def __init__(self, user_id, question_id, answer_id, time):
+    def __init__(self, user_id, question_id, answer_id, time=None):
         self.user_id = user_id
         self.question_id = question_id
         self.answer_id = answer_id
