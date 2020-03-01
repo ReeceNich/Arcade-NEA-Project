@@ -142,11 +142,12 @@ class DatabaseManager:
     
     # if a result is returned from the database, it must mean all the fields match.
     def auth_user(self, username, passcode, school_id):
-        self.cursor.execute(f"""
-        SELECT id FROM Users WHERE username = '{username}' and passcode = '{passcode}' and school_id = {school_id}
-        """)
+        self.cursor.execute("""
+        SELECT id FROM Users WHERE username = %s and passcode = %s and school_id = %s
+        """,
+        (username, passcode, school_id))
+
         record = self.cursor.fetchone()
-        print(f"auth user {record}")
         if record:
             return True
         else:
@@ -160,25 +161,33 @@ class DatabaseManager:
     def fetch_all_questions(self):
         self.cursor.execute("""
         SELECT * FROM Question
-        JOIN Topic ON Question.topic_id = Topic.id
         """)
-
-        question = []
-        for row in self.cursor:
-            question.append(Question(question_id=row[0], question=row[1], answer=row[2], incorrect_1=row[3],
-                                     incorrect_2=row[4], incorrect_3=row[5], difficulty_id=row[7]))
-
-        return question
-
+        
+        return self.cursor.fetchall()
 
     def fetch_question(self, question_id):
-        self.cursor.execute(f"""
+        self.cursor.execute("""
         SELECT * FROM Question
-        JOIN QuestionDifficulty ON Question.id = QuestionDifficulty.question_id
-        JOIN QuestionSubject ON Question.id = QuestionSubject.question_id
-        WHERE Question.id = {question_id}
-        """)
+        WHERE Question.id = %s
+        """,
+        (question_id,))
+
         return self.cursor.fetchone()
+
+    def fetch_answers(self, question_id):
+        self.cursor.execute("""
+        SELECT * FROM Answer
+        WHERE question_id = %s
+        """,
+        (question_id,))
+        return self.cursor.fetchall()
+
+    def fetch_question_and_answers(self, question_id):
+        question = self.fetch_question(question_id)
+        answers = self.fetch_answers(question_id)
+
+        return (question, answers)
+
 
 
     def fetch_user(self, email):
@@ -561,23 +570,13 @@ class QuestionAnswered:
 
 if __name__ == "__main__":
     d = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
-    
-    # def set_it_up():
-
-    #     print("Setting up")
-    #     d.setup()
-
-    #     print("Adding dummy data")
-    #     d.setup_dummy_data()
-
-    #     print("Done")
-
-    # print(d.fetch_user_question_history(1, 1))
-    # print(d.fetch_user_all_questions_history(1))
-    # print(d.fetch_question(1))
 
     # d.insert_user(User('Sir', '0000', 'sir@cowes.com', '1'))
 
-
-    d.setup()
-    d.setup_dummy_data()
+    # d.setup()
+    # d.setup_dummy_data()
+    
+    print(d.auth_user('rnicholls13', '5678', 1))
+    print(d.auth_user('rnicholls13', '2468', 1))
+    print(d.fetch_question(1))
+    print(d.fetch_question_and_answers(1))
