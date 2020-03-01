@@ -295,7 +295,7 @@ class DatabaseManager:
         """)
         return self.cursor.fetchall()
 
-    # TODO: Needs to fetch all the users questions theyve answered. But multiple questions are repeated.. need to return each question_id only once.
+    # TODO: Needs to fetch all the users questions they've answered. But multiple questions are repeated.. need to return each question_id only once.
     def fetch_user_all_questions_answered(self, user_id):
         self.cursor.execute(f"""
         SELECT * FROM QuestionAnswered
@@ -310,21 +310,28 @@ class DatabaseManager:
     #   INSERTING FUNCTIONS
     # 
 
-    # TODO: fix this function
-    def add_question(self, question_class):
+    def add_questions(self, question_class, answer_class_list):
         question = question_class
         q_id = self.insert_question(question)
         question.question_id = q_id
-
-        self.insert_question_difficulty(question)
-        self.insert_question_subject(question)
+        
+        for record in answer_class_list:
+            
+            record.question_id = q_id
+            self.insert_answer(record)
 
 
     def insert_answer(self, answer_class):
         self.cursor.execute("""
         INSERT INTO Answer (question_id, answer_id, correct, answer)
+        SELECT %s,
+            COUNT(*) + 1,
+            %s,
+            %s
+        FROM Answer
+        WHERE question_id = %s;
         """,
-        (answer_class.question_id, answer_class.answer_id, answer_class.correct, answer_class.answer))
+        (answer_class.question_id, answer_class.correct, answer_class.answer, answer_class.question_id))
         self.conn.commit()
 
     def insert_difficulty(self, difficulty_class):
@@ -423,27 +430,53 @@ class DatabaseManager:
     # TODO: Fix these functions!!!!
     
     def setup_dummy_data(self):
-        self.insert_difficulty(Difficulty('Very Easy', 1))
-        self.insert_difficulty(Difficulty('Easy', 2))
-        self.insert_difficulty(Difficulty('Medium', 3))
-        self.insert_difficulty(Difficulty('Hard', 4))
-        self.insert_difficulty(Difficulty('Very Hard', 5))
+        self.insert_difficulty(Difficulty(1, 'Very Easy'))
+        self.insert_difficulty(Difficulty(2, 'Easy'))
+        self.insert_difficulty(Difficulty(3, 'Medium'))
+        self.insert_difficulty(Difficulty(4, 'Hard', ))
+        self.insert_difficulty(Difficulty(5, 'Very Hard', ))
 
         self.insert_subject(Subject('MATHS', 'Maths'))
 
-        self.insert_school(School('Cowes Enterprise College'))
+        self.insert_topic(Topic('PERCENTAGE', 'Percentages', 'MATHS'))
+        self.insert_topic(Topic('ADDITION', 'Additions', 'MATHS'))
+        self.insert_topic(Topic('SUBTRACTION', 'Subtractions', 'MATHS'))
+        self.insert_topic(Topic('MULTIPLICATION', 'Multiplications', 'MATHS'))
+        self.insert_topic(Topic('DIVISION', 'Divisions', 'MATHS'))
+
+
+
+        self.insert_school(School('Cowes Enterprise College', 'reece_it@cowes.com'))
         self.insert_school(School('The International School for Spies'))
+
+        self.insert_year_group(YearGroup(7, "Year 7"))
+        self.insert_year_group(YearGroup(8, "Year 8"))
+        self.insert_year_group(YearGroup(9, "Year 9"))
+        self.insert_year_group(YearGroup(10, "Year 10"))
+        self.insert_year_group(YearGroup(11, "Year 11"))
+        self.insert_year_group(YearGroup(12, "Year 12"))
+        self.insert_year_group(YearGroup(13, "Year 13"))
+
+
         
+        self.insert_user(User('Reece', 'rnicholls13', '5678', 'The R', 13, 1))
 
-        self.add_question( Question("What is 10x10?", "100", "110", "1010", "120", "MATHS", "1") )
-        self.add_question( Question("What is 25% of 8?", '2', '4', '3', '1', 'MATHS', '3') )
-        self.add_question( Question("How many sides does a pentagon have?", '5', '4', '6', '7', 'MATHS', '1') )
-        self.add_question( Question("What is 25+7", '32', '33', '31', '34', 'MATHS', '3') )
-        self.add_question( Question("Whats the gradient of y=3x+4", '3', '3/4', '4/3', '4', 'MATHS', '5') )
+        self.insert_teacher(Teacher("admin@cowes.com", 1234, 1))
+
+        self.add_questions(Question("What is 10x10?", 1, "MULTIPLICATION", "MATHS"), 
+                                    [Answer(True, '100'),
+                                     Answer(False, '110')])
+        self.insert_answer(Answer(True, '1010', 1))
+
+
+        # self.add_question( Question("What is 10x10?", "100", "110", "1010", "120", "MATHS", "1") )
+        # self.add_question( Question("What is 25% of 8?", '2', '4', '3', '1', 'MATHS', '3') )
+        # self.add_question( Question("How many sides does a pentagon have?", '5', '4', '6', '7', 'MATHS', '1') )
+        # self.add_question( Question("What is 25+7", '32', '33', '31', '34', 'MATHS', '3') )
+        # self.add_question( Question("Whats the gradient of y=3x+4", '3', '3/4', '4/3', '4', 'MATHS', '5') )
 
 
 
-        self.insert_user(User('Reece', '5678', 'reece@cowes.com', '1'))
 
 
 # 
@@ -511,7 +544,7 @@ class Question:
 
 
 class Answer:
-    def __init__(self, question_id, answer_id, correct, answer):
+    def __init__(self, correct, answer, question_id=None, answer_id=None):
         self.question_id = question_id
         self.answer_id = answer_id
         self.correct = correct
@@ -547,3 +580,4 @@ if __name__ == "__main__":
 
 
     d.setup()
+    d.setup_dummy_data()
