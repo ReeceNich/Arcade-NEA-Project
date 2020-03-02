@@ -36,10 +36,22 @@ class TestFetchQuestionAndAnswers(unittest.TestCase):
 
         self.assertEqual(result[1][0]['answer'], '100', "Correct answer doesn't match")
         self.assertEqual(result[1][0]['correct'], True, "Correct 'correct' doesn't match")
+        for answer in result[1]:
+            self.assertEqual(answer['question_id'], 1, "Answer question_id does not match true question id.")
 
         self.assertNotEqual(result[1][1]['answer'], '100', "Incorrect answer doesn't match")
 
 
+class TestFetchLeaderboardGlobal(unittest.TestCase):
+   
+    def test_fetch_leaderboard_global_normal(self):
+        result = d.fetch_leaderboard_global()
+        print("\nLEADERBOARD GLOBAL")
+        for row in result:
+            print(f"User_ID: {row['user_id']}, Score: {row['score']}")
+        
+        self.assertEqual(d.fetch_leaderboard_global()[0]['user_id'], 1, "User_ID isn't what it should be")
+        self.assertEqual(d.fetch_leaderboard_global()[0]['score'], 6, "Score isn't what it should be")
 
 
 if __name__ == "__main__":

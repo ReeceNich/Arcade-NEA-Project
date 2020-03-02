@@ -308,17 +308,39 @@ class DatabaseManager:
             records.append(i)
         return records
 
-    # TODO: Guessing it now works, just need to test it. Might need to fix this!
-    # TODO: It kinda works. I believe it returns every time they've answered the same question correctly (can result in multiple repeated entries, need to stop this!)
+    # Never touch this. it just works.
     def fetch_leaderboard_global(self):
+        # self.cursor.execute("""
+        # SELECT QuestionAnswered.user_id, sum(Question.difficulty_id) FROM QuestionAnswered
+        # JOIN Question ON QuestionAnswered.question_id = Question.id
+        # JOIN Answer ON QuestionAnswered.answer_id = Answer.answer_id AND QuestionAnswered.question_id = Answer.question_id
+        # WHERE Answer.correct = true
+        # GROUP BY QuestionAnswered.user_id
+        # ORDER BY sum(Question.difficulty_id) DESC, Answer.time
+        # """)
+
+        # this currently gets every entry, orders it with latest first. now need to get the first record for each question_id and determine if answer=correct, then sum diff_id's.
+        # self.cursor.execute("""
+        # SELECT QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
+        # JOIN Question ON QuestionAnswered.question_id = Question.id
+        # JOIN Answer ON QuestionAnswered.answer_id = Answer.answer_id AND QuestionAnswered.question_id = Answer.question_id
+		# GROUP BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Question.difficulty_id, QuestionAnswered.time
+        # """)
+
+        # WORKING AS EXPECTED
         self.cursor.execute("""
-        SELECT QuestionAnswered.user_id, sum(Question.difficulty_id) FROM QuestionAnswered
+        WITH summary AS (SELECT DISTINCT ON (user_id, question_id) QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
         JOIN Question ON QuestionAnswered.question_id = Question.id
         JOIN Answer ON QuestionAnswered.answer_id = Answer.answer_id AND QuestionAnswered.question_id = Answer.question_id
-        WHERE Answer.correct = true
-        GROUP BY QuestionAnswered.user_id
-        ORDER BY sum(Question.difficulty_id) DESC
+		GROUP BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time
+		ORDER BY user_id, question_id, time DESC
+		)
+		
+		SELECT user_id, sum(difficulty_id) AS score FROM summary
+		WHERE correct = true
+		GROUP BY user_id
         """)
+
         return self.cursor.fetchall()
 
 
@@ -466,6 +488,8 @@ class DatabaseManager:
         self.insert_topic(Topic('SUBTRACTION', 'Subtractions', 'MATHS'))
         self.insert_topic(Topic('MULTIPLICATION', 'Multiplications', 'MATHS'))
         self.insert_topic(Topic('DIVISION', 'Divisions', 'MATHS'))
+        self.insert_topic(Topic('SHAPE', 'Shapes', 'MATHS'))
+
 
 
 
@@ -492,10 +516,34 @@ class DatabaseManager:
                                         Answer(False, '1010')])
         self.insert_answer(Answer(True, '120', 1))
 
+        self.add_question_with_answers(Question("What is 25% of 8?", 4, 'PERCENTAGE', 'MATHS'),
+                                       [Answer(True, '2'),
+                                        Answer(False, '1'),
+                                        Answer(False, '3'),
+                                        Answer(False, '4')])
+
+        self.add_question_with_answers(Question("How many sides does a pentagon have?", 1, 'SHAPE', 'MATHS'),
+                                       [Answer(True, '5'),
+                                        Answer(False, '4'),
+                                        Answer(False, '6'),
+                                        Answer(False, '7')                                        
+                                        ])
+
         self.insert_question_answered(QuestionAnswered(1, 1, 1))
         self.insert_question_answered(QuestionAnswered(1, 1, 2))
         self.insert_question_answered(QuestionAnswered(1, 1, 1))
         self.insert_question_answered(QuestionAnswered(1, 1, 3))
+        self.insert_question_answered(QuestionAnswered(1, 1, 1))
+
+        self.insert_question_answered(QuestionAnswered(1, 2, 2))
+        self.insert_question_answered(QuestionAnswered(1, 2, 2))
+        self.insert_question_answered(QuestionAnswered(1, 2, 1))
+        self.insert_question_answered(QuestionAnswered(1, 2, 1))
+
+        self.insert_question_answered(QuestionAnswered(1, 3, 2))
+        self.insert_question_answered(QuestionAnswered(1, 3, 1))
+
+
 
 
 
