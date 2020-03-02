@@ -184,6 +184,7 @@ class DatabaseManager:
         (question_id,))
         return self.cursor.fetchall()
 
+    # Returns a list. First index is a question, the next index is a list of answers.
     def fetch_question_and_answers(self, question_id):
         question = self.fetch_question(question_id)
         answers = self.fetch_answers(question_id)
@@ -191,19 +192,23 @@ class DatabaseManager:
         return (question, answers)
 
 
-
-    def fetch_user(self, email):
-        self.cursor.execute(f"""
-        SELECT * FROM Users WHERE email = '{email}'
-        """)
+    def fetch_user(self, username, school_id):
+        self.cursor.execute("""
+        SELECT * FROM Users
+        WHERE username = %s AND school_id = %s
+        """,
+        (username, school_id))
         return self.cursor.fetchone()
     
-    def fetch_user_name(self, user_id):
-        self.cursor.execute(f"""
-        SELECT name FROM Users WHERE id = '{user_id}'
-        """)
-        return self.cursor.fetchone()[0]
+    def fetch_user_using_id(self, user_id):
+        self.cursor.execute("""
+        SELECT * FROM Users
+        WHERE id = %s
+        """,
+        (user_id,))
+        return self.cursor.fetchone()
 
+    # TODO: Fix this!
     def fetch_user_total_score(self, u_id):
         self.cursor.execute(f"""
         SELECT sum(questiondifficulty.difficulty_id) as TOTAL FROM QuestionAnswered
@@ -213,36 +218,63 @@ class DatabaseManager:
         return self.cursor.fetchone()[0]
 
     def fetch_all_subjects(self):
-        self.cursor.execute(f"""
-        SELECT id, name FROM Subject
+        self.cursor.execute("""
+        SELECT * FROM Subject
         """)
         return self.cursor.fetchall()
 
     def fetch_all_schools(self):
-        self.cursor.execute(f"""
-        SELECT id, name FROM School
+        self.cursor.execute("""
+        SELECT * FROM School
         """)
         return self.cursor.fetchall()
     
-    def fetch_subject_name(self, sub_id):
-        self.cursor.execute(f"""
-        SELECT name FROM Subject WHERE id = '{sub_id}'
-        """)
-        return self.cursor.fetchone()[0]
+    def fetch_subject(self, subject_id):
+        self.cursor.execute("""
+        SELECT * FROM Subject
+        WHERE id = %s
+        """,
+        (subject_id,))
+        return self.cursor.fetchone()
     
-    def fetch_school_name(self, school_id):
-        self.cursor.execute(f"""
-        SELECT name FROM School WHERE id = {school_id}
-        """)
-        return self.cursor.fetchone()[0]
+    def fetch_school(self, school_id):
+        self.cursor.execute("""
+        SELECT * FROM School
+        WHERE id = %s
+        """,
+        (school_id,))
+        return self.cursor.fetchone()
 
     def fetch_schools_users(self, school_id):
-        self.cursor.execute(f"""
-        SELECT * FROM Users WHERE school_id = {school_id}
-        """)
+        self.cursor.execute("""
+        SELECT * FROM Users
+        WHERE school_id = %s
+        """,
+        (school_id,))
+        return self.cursor.fetchall()
+
+    def fetch_question_answered(self, user_id, question_id):
+        self.cursor.execute("""
+        SELECT * FROM QuestionAnswered
+        WHERE user_id = %s AND question_id = %s
+        ORDER BY time DESC
+        """,
+        (user_id, question_id))
+        return self.cursor.fetchall()
+
+    def fetch_all_questions_answered_by_user(self, user_id):
+        self.cursor.execute("""
+        SELECT * FROM QuestionAnswered
+        WHERE user_id = %s
+        ORDER BY question_id, time
+        """,
+        (user_id,))
         return self.cursor.fetchall()
 
 
+    # LEADERBOARD FETCHING FUNCTIONS
+
+    # TODO: Fix this!
     def fetch_leaderboard_school_subject(self, school_id, subject_id):
         self.cursor.execute(f"""
         SELECT QuestionAnswered.user_id, Users.name, sum(QuestionDifficulty.difficulty_id) FROM QuestionAnswered 
@@ -259,6 +291,7 @@ class DatabaseManager:
             records.append(i)
         return records
 
+    # TODO: Fix this!
     def fetch_leaderboard_school(self, s_id):
         self.cursor.execute(f"""
         SELECT QuestionAnswered.user_id, Users.name, sum(QuestionDifficulty.difficulty_id) FROM QuestionAnswered 
@@ -275,62 +308,24 @@ class DatabaseManager:
             records.append(i)
         return records
 
+    # TODO: Guessing it now works, just need to test it. Might need to fix this!
+    # TODO: It kinda works. I believe it returns every time they've answered the same question correctly (can result in multiple repeated entries, need to stop this!)
     def fetch_leaderboard_global(self):
-        self.cursor.execute(f"""
-        SELECT QuestionAnswered.user_id, Users.name, sum(QuestionDifficulty.difficulty_id), School.name FROM QuestionAnswered 
-        JOIN QuestionDifficulty ON QuestionAnswered.question_id = QuestionDifficulty.question_id
-        JOIN Users ON QuestionAnswered.user_id = Users.id
-        JOIN School on Users.school_id = School.id
-        WHERE QuestionAnswered.correctly_answered = true
-        GROUP BY QuestionAnswered.user_id, Users.name, School.id
-        ORDER BY sum(QuestionDifficulty.difficulty_id) DESC
-        """)
-        records = []
-        for i in self.cursor:
-            records.append(i)
-        return records
-
-    def fetch_user_question_history(self, user_id, question_id):
-        self.cursor.execute(f"""
-        SELECT * FROM QuestionAnswered
-        WHERE user_id = {user_id} AND question_id = {question_id}
-        ORDER BY time DESC
-        """)
-        return self.cursor.fetchall()
-
-    def fetch_user_all_questions_history(self, user_id):
-        self.cursor.execute(f"""
-        SELECT * FROM QuestionAnswered
-        WHERE user_id = {user_id}
-        ORDER BY question_id, time
-        """)
-        return self.cursor.fetchall()
-
-    # TODO: Needs to fetch all the users questions they've answered. But multiple questions are repeated.. need to return each question_id only once.
-    def fetch_user_all_questions_answered(self, user_id):
-        self.cursor.execute(f"""
-        SELECT * FROM QuestionAnswered
-        WHERE user_id = {user_id}
-        ORDER BY question_id, time
+        self.cursor.execute("""
+        SELECT QuestionAnswered.user_id, sum(Question.difficulty_id) FROM QuestionAnswered
+        JOIN Question ON QuestionAnswered.question_id = Question.id
+        JOIN Answer ON QuestionAnswered.answer_id = Answer.answer_id AND QuestionAnswered.question_id = Answer.question_id
+        WHERE Answer.correct = true
+        GROUP BY QuestionAnswered.user_id
+        ORDER BY sum(Question.difficulty_id) DESC
         """)
         return self.cursor.fetchall()
 
 
 
-    #
-    #   INSERTING FUNCTIONS
     # 
-
-    def add_questions(self, question_class, answer_class_list):
-        question = question_class
-        q_id = self.insert_question(question)
-        question.question_id = q_id
-        
-        for record in answer_class_list:
-            
-            record.question_id = q_id
-            self.insert_answer(record)
-
+    #   CORE INSERTING FUNCTIONS
+    # 
 
     def insert_answer(self, answer_class):
         self.cursor.execute("""
@@ -365,9 +360,9 @@ class DatabaseManager:
         return q_id  # return ID so the code knows what the new ID is.
     
     def insert_question_answered(self, questionanswered_class):
-        self.cursor.execute(f"""
+        self.cursor.execute("""
         INSERT INTO QuestionAnswered (user_id, question_id, answer_id)
-        VALUES (%s, %s, %s, %s)
+        VALUES (%s, %s, %s)
         """,
         (questionanswered_class.user_id, questionanswered_class.question_id, questionanswered_class.answer_id))
 
@@ -434,6 +429,23 @@ class DatabaseManager:
         self.conn.commit()
 
 
+    #
+    #   INSERTING FUNCTIONS
+    # 
+
+    # Provide question class, and a list containing each answer class.
+    def add_question_with_answers(self, question_class, answer_class_list):
+        question = question_class
+        q_id = self.insert_question(question)
+        # question.question_id = q_id # not needed any more.
+        
+        for record in answer_class_list:
+            # populates the answers with the Question ID stored in the database.
+            record.question_id = q_id
+            self.insert_answer(record)
+
+
+
     
 
     #
@@ -474,10 +486,17 @@ class DatabaseManager:
 
         self.insert_teacher(Teacher("admin@cowes.com", 1234, 1))
 
-        self.add_questions(Question("What is 10x10?", 1, "MULTIPLICATION", "MATHS"), 
-                                    [Answer(True, '100'),
-                                     Answer(False, '110')])
-        self.insert_answer(Answer(True, '1010', 1))
+        self.add_question_with_answers(Question("What is 10x10?", 1, "MULTIPLICATION", "MATHS"), 
+                                       [Answer(True, '100'),
+                                        Answer(False, '110'),
+                                        Answer(False, '1010')])
+        self.insert_answer(Answer(True, '120', 1))
+
+        self.insert_question_answered(QuestionAnswered(1, 1, 1))
+        self.insert_question_answered(QuestionAnswered(1, 1, 2))
+        self.insert_question_answered(QuestionAnswered(1, 1, 1))
+        self.insert_question_answered(QuestionAnswered(1, 1, 3))
+
 
 
         # self.add_question( Question("What is 10x10?", "100", "110", "1010", "120", "MATHS", "1") )
@@ -575,12 +594,12 @@ if __name__ == "__main__":
 
     # d.insert_user(User('Sir', '0000', 'sir@cowes.com', '1'))
 
-    # d.setup()
-    # d.setup_dummy_data()
+    d.setup()
+    d.setup_dummy_data()
     
-    print(d.auth_user('rnicholls13', '5678', 1))
-    print(d.auth_user('rnicholls13', '2468', 1))
-    print(d.fetch_question(1))
-    print(d.fetch_question_and_answers(1))
+    # print(d.auth_user('rnicholls13', '5678', 1))
+    # print(d.auth_user('rnicholls13', '2468', 1))
+    # print(d.fetch_question(1))
+    # print(d.fetch_question_and_answers(1))
 
-    print(d.fetch_all_questions())
+    # print(d.fetch_all_questions())
