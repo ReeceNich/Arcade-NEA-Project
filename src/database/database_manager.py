@@ -1,10 +1,12 @@
 import psycopg2
+import psycopg2.extras
 
 
 class DatabaseManager:
     def __init__(self, conn):
         self.conn = conn
-        self.cursor = conn.cursor()
+        # the cursor factory returns each row in the database as a dictionary item.
+        self.cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
 
     def close(self):
@@ -162,7 +164,7 @@ class DatabaseManager:
         self.cursor.execute("""
         SELECT * FROM Question
         """)
-        
+
         return self.cursor.fetchall()
 
     def fetch_question(self, question_id):
@@ -580,3 +582,5 @@ if __name__ == "__main__":
     print(d.auth_user('rnicholls13', '2468', 1))
     print(d.fetch_question(1))
     print(d.fetch_question_and_answers(1))
+
+    print(d.fetch_all_questions())
