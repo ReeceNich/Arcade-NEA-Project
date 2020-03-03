@@ -40,14 +40,17 @@
             </select>
         
             <!-- Question ID box. -->
-            <input type="text" name="question_id" placeholder="Question ID">
+            <!-- <input type="text" name="question_id" placeholder="Question ID"> -->
         
-        
-            <!-- THIS WILL REPLACE THE QUESTION_ID TEXT BOX. All the users questions they have answered will populate the dropdown, maybe? -->
+            <!-- THIS WILL REPLACE THE QUESTION_ID TEXT BOX. -->
             {% if questions_list %}
                 <select name="question_id">
-                    {% for question in questions_list %}
-                        <option value='{{ question[0] }}'>{{ question[1] }}</option>
+                    {% for q in questions_list %}
+                        {% if question_name == q['question'] %}
+                            <option value="{{ q['question_id'] }}" selected>{{ q['question'] }}</option>
+                        {% else %}
+                            <option value="{{ q['question_id'] }}">{{ q['question'] }}</option>
+                        {% endif %}
                     {% endfor %}
                 </select>
             {% endif %}
@@ -69,11 +72,8 @@
     {% if user_name %}
         <h3>Results for: '{{ user_name }}'</h3>
     {% endif %}
-    {% if question_id %}
-        <h3>Question ID: {{ question_id }}</h3>
-    {% endif %}
-    {% if question %}
-        <h3>Question: '{{ question }}'</h3>
+    {% if question_name %}
+        <h3>Question: "{{ question_name }}"</h3>
     {% endif %}
 
     <!-- Table of the results -->
@@ -86,9 +86,9 @@
             </tr>
             {% for row in table_entries %}
                 <tr>
-                    <td>{{ row[2] }}</td>
-                    <td>{{ row[3] }}</td>
-                    <td>{{ row[4] }}</td>
+                    <td>{{ row['correct'] }}</td>
+                    <td>{{ row['answer'] }}</td>
+                    <td>{{ row['time'] }}</td>
                 </tr>
             {% endfor %}
         </table>
