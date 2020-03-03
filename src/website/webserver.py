@@ -136,6 +136,7 @@ class MyHandler(BaseHTTPRequestHandler):
                     self.path = "/leaderboard/index.html"
                     page = jinja_template.render()
                 
+                # TODO: loop through each entry and get the User details (e.g. school name, nickname, name)
                 elif self.path == "/leaderboard/global.html":
                     table_entries = self.db.fetch_leaderboard_global()
                     print(table_entries)
@@ -152,7 +153,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
                         if s_id:
                             table_entries = self.db.fetch_leaderboard_school(s_id)
-                            school_name = self.db.fetch_school_name(s_id)
+                            school_name = self.db.fetch_school(s_id)['name']
 
                     except:
                         pass
@@ -177,8 +178,8 @@ class MyHandler(BaseHTTPRequestHandler):
 
                         if school_id and subject_id:
                             table_entries = self.db.fetch_leaderboard_school_subject(school_id, subject_id)
-                            school_name = self.db.fetch_school_name(school_id)
-                            subject_name = self.db.fetch_subject_name(subject_id)
+                            school_name = self.db.fetch_school(school_id)['name']
+                            subject_name = self.db.fetch_subject(subject_id)['name']
 
                             print(f"school name, subject name {school_name}, {subject_name}")
 
@@ -203,8 +204,8 @@ class MyHandler(BaseHTTPRequestHandler):
                     table_entries = None
                     school_name = None
                     user_name = None
-                    question = None
                     question_id = None
+                    question_name = None
 
                     try:
                         cookies = SimpleCookie(self.headers.get('Cookie'))
@@ -213,33 +214,28 @@ class MyHandler(BaseHTTPRequestHandler):
                         
                         user_id = cookies['user_id'].value
                         question_id = cookies['question_id'].value
+
+                        questions_list = self.db.fetch_all_question_names_answered_by_user(user_id)
+
                         print(f"school id {school_id}, user id {user_id}, question id {question_id}")
 
                         if school_id:
-                            school_name = self.db.fetch_school_name(school_id)
+                            school_name = self.db.fetch_school(school_id)['name']
 
                         if user_id:
-                            user_name = self.db.fetch_user_name(user_id)
+                            user_name = self.db.fetch_user_using_id(user_id)['name']
 
                         if user_id and question_id:
-                            table_entries = self.db.fetch_user_question_history(user_id, question_id)
-                            question = self.db.fetch_question(question_id)[1]
-
+                            table_entries = self.db.fetch_question_answered_by_user(user_id, question_id)
+                            question_name = self.db.fetch_question(question_id)['question']
 
                     except:
                         pass
 
-                    print(f"TABLE ENTRIES {table_entries}")
-                    print("ALLLLLL DATA")
-                    print(f"""{schools_list},
-                              {users_list},
-                              {questions_list},
-                              {user_name},
-                              {question},
-                              {school_name},
-                              {table_entries}""")
-                    page = jinja_template.render(schools_list=schools_list, users_list=users_list, questions_list=questions_list, user_name=user_name, question_id=question_id, question=question, school_name=school_name, table_entries=table_entries)
+                    page = jinja_template.render(schools_list=schools_list, users_list=users_list, questions_list=questions_list, user_name=user_name, question_id=question_id, question_name=question_name, school_name=school_name, table_entries=table_entries)
 
+                elif self.path == "/analysis/user_all_questions.html":
+                    pass
 
                 else:
                     pass
