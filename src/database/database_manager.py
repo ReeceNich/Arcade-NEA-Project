@@ -208,23 +208,6 @@ class DatabaseManager:
         (user_id,))
         return self.cursor.fetchone()
 
-    # TODO: Fix this! Done!
-    def fetch_user_total_score(self, user_id):
-        self.cursor.execute("""
-        WITH summary AS (SELECT DISTINCT ON (QuestionAnswered.user_id, QuestionAnswered.question_id) QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
-        JOIN Question ON QuestionAnswered.question_id = Question.id
-        JOIN Answer ON QuestionAnswered.answer_id = Answer.answer_id AND QuestionAnswered.question_id = Answer.question_id
-		GROUP BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time
-		ORDER BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.time DESC
-		)
-		
-		SELECT user_id, sum(difficulty_id) AS score FROM summary
-		WHERE correct = true AND user_id = %s
-		GROUP BY user_id
-        """,
-        (user_id,))
-        return self.cursor.fetchone()
-
     def fetch_all_subjects(self):
         self.cursor.execute("""
         SELECT * FROM Subject
@@ -261,10 +244,11 @@ class DatabaseManager:
         (school_id,))
         return self.cursor.fetchall()
 
-    def fetch_question_answered(self, user_id, question_id):
+    def fetch_question_answered_by_user(self, user_id, question_id):
         self.cursor.execute("""
-        SELECT * FROM QuestionAnswered
-        WHERE user_id = %s AND question_id = %s
+        SELECT QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Answer.answer, QuestionAnswered.time FROM QuestionAnswered
+		JOIN Answer ON QuestionAnswered.question_id = Answer.question_id AND QuestionAnswered.answer_id = Answer.answer_id
+        WHERE QuestionAnswered.user_id = %s AND QuestionAnswered.question_id = %s
         ORDER BY time DESC
         """,
         (user_id, question_id))
@@ -279,24 +263,52 @@ class DatabaseManager:
         (user_id,))
         return self.cursor.fetchall()
 
+    def fetch_all_question_names_answered_by_user(self, user_id):
+        self.cursor.execute("""
+        SELECT DISTINCT ON (QuestionAnswered.user_id, QuestionAnswered.question_id) QuestionAnswered.user_id, QuestionAnswered.question_id, Question.question FROM QuestionAnswered
+        JOIN Question ON QuestionAnswered.question_id = Question.id
+		WHERE QuestionAnswered.user_id = %s
+        ORDER BY QuestionAnswered.question_id
+        """,
+        (user_id,))
+        return self.cursor.fetchall()
 
     # LEADERBOARD FETCHING FUNCTIONS
 
-    # TODO: Fix this! Fixed, just need to test it.
+    # TODO: Fix this! Done!
+    def fetch_user_total_score(self, user_id):
+        self.cursor.execute("""
+        WITH summary AS (SELECT DISTINCT ON (QuestionAnswered.user_id, QuestionAnswered.question_id) QuestionAnswered.user_id, Users.name AS user_name, Users.nickname AS user_nickname, School.name AS school_name, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
+        JOIN Question ON QuestionAnswered.question_id = Question.id
+        JOIN Answer ON QuestionAnswered.answer_id = Answer.answer_id AND QuestionAnswered.question_id = Answer.question_id
+		JOIN Users ON QuestionAnswered.user_id = Users.id
+		JOIN School ON Users.school_id = School.id	 
+		GROUP BY QuestionAnswered.user_id, Users.name, Users.nickname, School.name, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time
+		ORDER BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.time DESC
+		)
+		
+		SELECT user_id, user_name, user_nickname, school_name, sum(difficulty_id) AS score FROM summary
+		WHERE correct = true AND user_id = %s
+		GROUP BY user_id, user_name, user_nickname, school_name
+        """,
+        (user_id,))
+        return self.cursor.fetchone()
+
+    # TODO: Fix this! Fixed, just need to test it. Tests pass, all done!
     def fetch_leaderboard_school_subject(self, school_id, subject_id):
         self.cursor.execute("""
-        WITH summary AS (SELECT DISTINCT ON (QuestionAnswered.user_id, QuestionAnswered.question_id) QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
+        WITH summary AS (SELECT DISTINCT ON (QuestionAnswered.user_id, QuestionAnswered.question_id) QuestionAnswered.user_id, Users.name AS user_name, Users.nickname AS user_nickname, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
         JOIN Question ON QuestionAnswered.question_id = Question.id
         JOIN Answer ON QuestionAnswered.answer_id = Answer.answer_id AND QuestionAnswered.question_id = Answer.question_id
 		JOIN Users ON QuestionAnswered.user_id = Users.id
 		WHERE Users.school_id = %s AND Question.subject_id = %s
-		GROUP BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time
+		GROUP BY QuestionAnswered.user_id, Users.name, Users.nickname, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time
 		ORDER BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.time DESC
 		)
 		
-		SELECT user_id, sum(difficulty_id) AS score FROM summary
+		SELECT user_id, user_name, user_nickname, sum(difficulty_id) AS score FROM summary
 		WHERE correct = true
-		GROUP BY user_id
+		GROUP BY user_id, user_name, user_nickname
         """,
         (school_id, subject_id))
 
@@ -305,55 +317,40 @@ class DatabaseManager:
     # TODO: Fix this! Fixed, just need to test it. Tests pass, function is now completely fixed!
     def fetch_leaderboard_school(self, school_id):
         self.cursor.execute("""
-        WITH summary AS (SELECT DISTINCT ON (QuestionAnswered.user_id, QuestionAnswered.question_id) QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
+        WITH summary AS (SELECT DISTINCT ON (QuestionAnswered.user_id, QuestionAnswered.question_id) QuestionAnswered.user_id, Users.name AS user_name, Users.nickname AS user_nickname, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
         JOIN Question ON QuestionAnswered.question_id = Question.id
         JOIN Answer ON QuestionAnswered.answer_id = Answer.answer_id AND QuestionAnswered.question_id = Answer.question_id
 		JOIN Users ON QuestionAnswered.user_id = Users.id
 		WHERE Users.school_id = %s
-		GROUP BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time
+		GROUP BY QuestionAnswered.user_id, Users.name, Users.nickname, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time
 		ORDER BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.time DESC
 		)
 		
-		SELECT user_id, sum(difficulty_id) AS score FROM summary
+		SELECT user_id, user_name, user_nickname, sum(difficulty_id) AS score FROM summary
 		WHERE correct = true
-		GROUP BY user_id
+		GROUP BY user_id, user_name, user_nickname
         """,
         (school_id,))
 
         return self.cursor.fetchall()
 
 
-    # Never touch this. it just works.
+    # Never touch this. it just works. Returns user_id, score, user_name, user_nickname, school_name.
     def fetch_leaderboard_global(self):
-        # self.cursor.execute("""
-        # SELECT QuestionAnswered.user_id, sum(Question.difficulty_id) FROM QuestionAnswered
-        # JOIN Question ON QuestionAnswered.question_id = Question.id
-        # JOIN Answer ON QuestionAnswered.answer_id = Answer.answer_id AND QuestionAnswered.question_id = Answer.question_id
-        # WHERE Answer.correct = true
-        # GROUP BY QuestionAnswered.user_id
-        # ORDER BY sum(Question.difficulty_id) DESC, Answer.time
-        # """)
-
-        # this currently gets every entry, orders it with latest first. now need to get the first record for each question_id and determine if answer=correct, then sum diff_id's.
-        # self.cursor.execute("""
-        # SELECT QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
-        # JOIN Question ON QuestionAnswered.question_id = Question.id
-        # JOIN Answer ON QuestionAnswered.answer_id = Answer.answer_id AND QuestionAnswered.question_id = Answer.question_id
-		# GROUP BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Question.difficulty_id, QuestionAnswered.time
-        # """)
-
         # WORKING AS EXPECTED
         self.cursor.execute("""
-        WITH summary AS (SELECT DISTINCT ON (QuestionAnswered.user_id, QuestionAnswered.question_id) QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
+        WITH summary AS (SELECT DISTINCT ON (QuestionAnswered.user_id, QuestionAnswered.question_id) QuestionAnswered.user_id, Users.name AS user_name, Users.nickname AS user_nickname, School.name AS school_name, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
         JOIN Question ON QuestionAnswered.question_id = Question.id
         JOIN Answer ON QuestionAnswered.answer_id = Answer.answer_id AND QuestionAnswered.question_id = Answer.question_id
-		GROUP BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time
+		JOIN Users ON QuestionAnswered.user_id = Users.id
+		JOIN School ON Users.school_id = School.id
+		GROUP BY QuestionAnswered.user_id, Users.name, School.name, Users.nickname, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time
 		ORDER BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.time DESC
 		)
 		
-		SELECT user_id, sum(difficulty_id) AS score FROM summary
+		SELECT user_id, sum(difficulty_id) AS score, user_name, user_nickname, school_name FROM summary
 		WHERE correct = true
-		GROUP BY user_id
+		GROUP BY user_id, user_name, user_nickname, school_name
         """)
 
         return self.cursor.fetchall()

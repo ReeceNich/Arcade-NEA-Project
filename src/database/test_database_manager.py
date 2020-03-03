@@ -47,8 +47,18 @@ class TestFetchLeaderboardGlobal(unittest.TestCase):
     def test_fetch_leaderboard_global_normal(self):
         result = d.fetch_leaderboard_global()
         
-        self.assertEqual(d.fetch_leaderboard_global()[0]['user_id'], 1, "User_ID isn't what it should be")
-        self.assertEqual(d.fetch_leaderboard_global()[0]['score'], 7, "Score isn't what it should be")
+        self.assertEqual(result[0]['user_id'], 1, "User_ID isn't what it should be")
+        self.assertEqual(result[0]['score'], 7, "Score isn't what it should be")
+        self.assertEqual(result[0]['user_name'], "John", "Name isn't what it should be")
+        self.assertEqual(result[0]['user_nickname'], "Dr Who", "Nick isn't what it should be")
+        self.assertEqual(result[0]['school_name'], "The International School for Spies", "School name isn't what it should be")
+
+        self.assertEqual(result[1]['user_id'], 2, "School User_ID doesn't match")
+        self.assertEqual(result[1]['score'], 5, "School score doesn't match")
+        self.assertEqual(result[1]['user_name'], "Bob", "Name isn't what it should be")
+        self.assertEqual(result[1]['user_nickname'], "BJ", "Nick isn't what it should be")
+
+
 
 
 class TestFetchLeaderboardSchool(unittest.TestCase):
@@ -59,9 +69,14 @@ class TestFetchLeaderboardSchool(unittest.TestCase):
 
         self.assertEqual(result[0]['user_id'], 1, "School User_ID doesn't match")
         self.assertEqual(result[0]['score'], 7, "School score doesn't match")
+        self.assertEqual(result[0]['user_name'], "John", "Name isn't what it should be")
+        self.assertEqual(result[0]['user_nickname'], "Dr Who", "Nick isn't what it should be")
 
         self.assertEqual(result[1]['user_id'], 2, "School User_ID doesn't match")
         self.assertEqual(result[1]['score'], 5, "School score doesn't match")
+        self.assertEqual(result[1]['user_name'], "Bob", "Name isn't what it should be")
+        self.assertEqual(result[1]['user_nickname'], "BJ", "Nick isn't what it should be")
+
 
 
 class TestFetchLeadboardSchoolSubject(unittest.TestCase):
@@ -70,9 +85,13 @@ class TestFetchLeadboardSchoolSubject(unittest.TestCase):
         result = d.fetch_leaderboard_school_subject(1, 'MATHS')
         self.assertEqual(result[0]['user_id'], 1, "1st place User_ID not matching")
         self.assertEqual(result[0]['score'], 6, "1st place score not matching")
+        self.assertEqual(result[0]['user_name'], "John", "Name isn't what it should be")
+        self.assertEqual(result[0]['user_nickname'], "Dr Who", "Nick isn't what it should be")
 
         self.assertEqual(result[1]['user_id'], 2, "2nd place User_ID not matching")
         self.assertEqual(result[1]['score'], 5, "2nd place score not matching")
+        self.assertEqual(result[1]['user_name'], "Bob", "Name isn't what it should be")
+        self.assertEqual(result[1]['user_nickname'], "BJ", "Nick isn't what it should be")
 
 
 class TestFetchUserTotalScore(unittest.TestCase):
