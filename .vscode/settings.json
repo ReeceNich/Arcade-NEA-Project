@@ -1,5 +1,6 @@
 {
+    "python.pythonPath": "venv/bin/python",
     "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true,
-    "python.pythonPath": "/Users/reecenicholls/OneDrive - Cowes Enterprise College/CompSci/Project/The Real Deal/venv/bin/python3"
+    "python.linting.flake8Enabled": false,
+    "python.linting.enabled": true
 }
