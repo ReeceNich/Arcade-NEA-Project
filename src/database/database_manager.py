@@ -158,7 +158,7 @@ class DatabaseManager:
 
     #
     #   DATA FETCHING FUNCTIONS
-    # TODO: fix all these functions!!!
+    #
 
     def fetch_all_questions(self):
         self.cursor.execute("""
@@ -184,7 +184,7 @@ class DatabaseManager:
         (question_id,))
         return self.cursor.fetchall()
 
-    # Returns a list. First index is a question, the next index is a list of answers.
+    # This returns a tuple. First index is a question, the next index is a list of answers.
     def fetch_question_and_answers(self, question_id):
         question = self.fetch_question(question_id)
         answers = self.fetch_answers(question_id)
@@ -208,14 +208,22 @@ class DatabaseManager:
         (user_id,))
         return self.cursor.fetchone()
 
-    # TODO: Fix this!
-    def fetch_user_total_score(self, u_id):
-        self.cursor.execute(f"""
-        SELECT sum(questiondifficulty.difficulty_id) as TOTAL FROM QuestionAnswered
-        JOIN QuestionDifficulty ON QuestionAnswered.question_id = QuestionDifficulty.question_id
-        WHERE user_id = {u_id} AND QuestionAnswered.correctly_answered = true
-        """)
-        return self.cursor.fetchone()[0]
+    # TODO: Fix this! Done!
+    def fetch_user_total_score(self, user_id):
+        self.cursor.execute("""
+        WITH summary AS (SELECT DISTINCT ON (QuestionAnswered.user_id, QuestionAnswered.question_id) QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
+        JOIN Question ON QuestionAnswered.question_id = Question.id
+        JOIN Answer ON QuestionAnswered.answer_id = Answer.answer_id AND QuestionAnswered.question_id = Answer.question_id
+		GROUP BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time
+		ORDER BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.time DESC
+		)
+		
+		SELECT user_id, sum(difficulty_id) AS score FROM summary
+		WHERE correct = true AND user_id = %s
+		GROUP BY user_id
+        """,
+        (user_id,))
+        return self.cursor.fetchone()
 
     def fetch_all_subjects(self):
         self.cursor.execute("""
@@ -274,39 +282,46 @@ class DatabaseManager:
 
     # LEADERBOARD FETCHING FUNCTIONS
 
-    # TODO: Fix this!
+    # TODO: Fix this! Fixed, just need to test it.
     def fetch_leaderboard_school_subject(self, school_id, subject_id):
-        self.cursor.execute(f"""
-        SELECT QuestionAnswered.user_id, Users.name, sum(QuestionDifficulty.difficulty_id) FROM QuestionAnswered 
-        JOIN QuestionDifficulty ON QuestionAnswered.question_id = QuestionDifficulty.question_id
-        JOIN Users ON QuestionAnswered.user_id = Users.id
-        JOIN School ON Users.school_id = School.id
-        JOIN QuestionSubject ON QuestionAnswered.question_id = QuestionSubject.question_id
-        WHERE QuestionAnswered.correctly_answered = true AND Users.school_id = {school_id} AND QuestionSubject.subject_id = '{subject_id}'
-        GROUP BY QuestionAnswered.user_id, Users.name
-        ORDER BY sum(QuestionDifficulty.difficulty_id) DESC
-        """)
-        records = []
-        for i in self.cursor:
-            records.append(i)
-        return records
+        self.cursor.execute("""
+        WITH summary AS (SELECT DISTINCT ON (QuestionAnswered.user_id, QuestionAnswered.question_id) QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
+        JOIN Question ON QuestionAnswered.question_id = Question.id
+        JOIN Answer ON QuestionAnswered.answer_id = Answer.answer_id AND QuestionAnswered.question_id = Answer.question_id
+		JOIN Users ON QuestionAnswered.user_id = Users.id
+		WHERE Users.school_id = %s AND Question.subject_id = %s
+		GROUP BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time
+		ORDER BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.time DESC
+		)
+		
+		SELECT user_id, sum(difficulty_id) AS score FROM summary
+		WHERE correct = true
+		GROUP BY user_id
+        """,
+        (school_id, subject_id))
 
-    # TODO: Fix this!
-    def fetch_leaderboard_school(self, s_id):
-        self.cursor.execute(f"""
-        SELECT QuestionAnswered.user_id, Users.name, sum(QuestionDifficulty.difficulty_id) FROM QuestionAnswered 
-        JOIN QuestionDifficulty ON QuestionAnswered.question_id = QuestionDifficulty.question_id
-        JOIN Users ON QuestionAnswered.user_id = Users.id
-        JOIN School on Users.school_id = School.id
-        WHERE QuestionAnswered.correctly_answered = true AND Users.school_id = {s_id}
-        GROUP BY QuestionAnswered.user_id, Users.name
-        ORDER BY sum(QuestionDifficulty.difficulty_id) DESC
-        """)
+        return self.cursor.fetchall()
 
-        records = []
-        for i in self.cursor:
-            records.append(i)
-        return records
+    # TODO: Fix this! Fixed, just need to test it. Tests pass, function is now completely fixed!
+    def fetch_leaderboard_school(self, school_id):
+        self.cursor.execute("""
+        WITH summary AS (SELECT DISTINCT ON (QuestionAnswered.user_id, QuestionAnswered.question_id) QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
+        JOIN Question ON QuestionAnswered.question_id = Question.id
+        JOIN Answer ON QuestionAnswered.answer_id = Answer.answer_id AND QuestionAnswered.question_id = Answer.question_id
+		JOIN Users ON QuestionAnswered.user_id = Users.id
+		WHERE Users.school_id = %s
+		GROUP BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time
+		ORDER BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.time DESC
+		)
+		
+		SELECT user_id, sum(difficulty_id) AS score FROM summary
+		WHERE correct = true
+		GROUP BY user_id
+        """,
+        (school_id,))
+
+        return self.cursor.fetchall()
+
 
     # Never touch this. it just works.
     def fetch_leaderboard_global(self):
@@ -329,11 +344,11 @@ class DatabaseManager:
 
         # WORKING AS EXPECTED
         self.cursor.execute("""
-        WITH summary AS (SELECT DISTINCT ON (user_id, question_id) QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
+        WITH summary AS (SELECT DISTINCT ON (QuestionAnswered.user_id, QuestionAnswered.question_id) QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
         JOIN Question ON QuestionAnswered.question_id = Question.id
         JOIN Answer ON QuestionAnswered.answer_id = Answer.answer_id AND QuestionAnswered.question_id = Answer.question_id
 		GROUP BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time
-		ORDER BY user_id, question_id, time DESC
+		ORDER BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.time DESC
 		)
 		
 		SELECT user_id, sum(difficulty_id) AS score FROM summary
@@ -482,6 +497,8 @@ class DatabaseManager:
         self.insert_difficulty(Difficulty(5, 'Very Hard', ))
 
         self.insert_subject(Subject('MATHS', 'Maths'))
+        self.insert_subject(Subject('COMP_SCI', 'Computer Science'))
+
 
         self.insert_topic(Topic('PERCENTAGE', 'Percentages', 'MATHS'))
         self.insert_topic(Topic('ADDITION', 'Additions', 'MATHS'))
@@ -490,11 +507,12 @@ class DatabaseManager:
         self.insert_topic(Topic('DIVISION', 'Divisions', 'MATHS'))
         self.insert_topic(Topic('SHAPE', 'Shapes', 'MATHS'))
 
+        self.insert_topic(Topic('PYTHON', 'Python', 'COMP_SCI'))
 
 
 
-        self.insert_school(School('Cowes Enterprise College', 'reece_it@cowes.com'))
         self.insert_school(School('The International School for Spies'))
+        self.insert_school(School('Cowes Enterprise College', 'reece_it@cowes.com'))
 
         self.insert_year_group(YearGroup(7, "Year 7"))
         self.insert_year_group(YearGroup(8, "Year 8"))
@@ -506,7 +524,11 @@ class DatabaseManager:
 
 
         
-        self.insert_user(User('Reece', 'rnicholls13', '5678', 'The R', 13, 1))
+        self.insert_user(User('John', 'johnsmith', '0000', 'Dr Who', 13, 1))
+        self.insert_user(User('Bob', 'bobj', '0000', 'BJ', 11, 1))
+        self.insert_user(User('Reece', 'rnicholls13', '5678', 'The R', 13, 2))
+
+
 
         self.insert_teacher(Teacher("admin@cowes.com", 1234, 1))
 
@@ -529,6 +551,10 @@ class DatabaseManager:
                                         Answer(False, '7')                                        
                                         ])
 
+        self.add_question_with_answers(Question("Does this statement produce an error: print(Hello)", 1, 'PYTHON', 'COMP_SCI'),
+                                       [Answer(True, 'No'),
+                                        Answer(False, 'Yes')])
+
         self.insert_question_answered(QuestionAnswered(1, 1, 1))
         self.insert_question_answered(QuestionAnswered(1, 1, 2))
         self.insert_question_answered(QuestionAnswered(1, 1, 1))
@@ -543,17 +569,19 @@ class DatabaseManager:
         self.insert_question_answered(QuestionAnswered(1, 3, 2))
         self.insert_question_answered(QuestionAnswered(1, 3, 1))
 
+        self.insert_question_answered(QuestionAnswered(2, 1, 1))
+        self.insert_question_answered(QuestionAnswered(2, 2, 1))
+        self.insert_question_answered(QuestionAnswered(2, 3, 2))
 
+        self.insert_question_answered(QuestionAnswered(1, 4, 1))
 
-
+        print("Successfully reset and recreated the database!")
 
         # self.add_question( Question("What is 10x10?", "100", "110", "1010", "120", "MATHS", "1") )
         # self.add_question( Question("What is 25% of 8?", '2', '4', '3', '1', 'MATHS', '3') )
         # self.add_question( Question("How many sides does a pentagon have?", '5', '4', '6', '7', 'MATHS', '1') )
         # self.add_question( Question("What is 25+7", '32', '33', '31', '34', 'MATHS', '3') )
         # self.add_question( Question("Whats the gradient of y=3x+4", '3', '3/4', '4/3', '4', 'MATHS', '5') )
-
-
 
 
 
@@ -640,14 +668,8 @@ class QuestionAnswered:
 if __name__ == "__main__":
     d = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
 
-    # d.insert_user(User('Sir', '0000', 'sir@cowes.com', '1'))
 
     d.setup()
     d.setup_dummy_data()
     
-    # print(d.auth_user('rnicholls13', '5678', 1))
-    # print(d.auth_user('rnicholls13', '2468', 1))
-    # print(d.fetch_question(1))
-    # print(d.fetch_question_and_answers(1))
-
-    # print(d.fetch_all_questions())
+    # d.insert_user(User('Sir', '0000', 'sir@cowes.com', '1'))
