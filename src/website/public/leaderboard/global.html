@@ -17,14 +17,16 @@
         <table>
             <tr>
                 <th>Name</th>
+                <th>Nickname</th>
                 <th>Score</th>
                 <th>School</th>
             </tr>
             {% for row in table_entries %}
                 <tr>
-                    <td>{{ row[1] }}</td>
-                    <td>{{ row[2] }}</td>
-                    <td>{{ row[3] }}</td>
+                    <td>{{ row['user_name'] }}</td>
+                    <td>{{ row['user_nickname'] }}</td>
+                    <td>{{ row['score'] }}</td>
+                    <td>{{ row['school_name'] }}</td>
                 </tr>
             {% endfor %}
         </table>

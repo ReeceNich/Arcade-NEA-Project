@@ -15,7 +15,11 @@
     <form action="/leaderboard/school.html" method="POST">
         <select name="school_id">
             {% for school in schools_list %}
-                <option value='{{ school[0] }}'>{{ school[1] }}</option>
+                {% if school_name == school[1] %}
+                    <option value='{{ school[0] }}' selected>{{ school[1] }}</option>
+                {% else %}
+                    <option value='{{ school[0] }}'>{{ school[1] }}</option>
+                {% endif %}
             {% endfor %}
         </select>
         
@@ -27,12 +31,14 @@
         <table>
             <tr>
                 <th>Name</th>
+                <th>Nickname</th>
                 <th>Score</th>
             </tr>
             {% for row in table_entries %}
                 <tr>
-                    <td>{{ row[1] }}</td>
-                    <td>{{ row[2] }}</td>
+                    <td>{{ row['user_name'] }}</td>
+                    <td>{{ row['user_nickname'] }}</td>
+                    <td>{{ row['score'] }}</td>
                 </tr>
             {% endfor %}
         </table>
