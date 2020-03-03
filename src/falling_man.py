@@ -1,7 +1,7 @@
 import arcade
 import random
 import psycopg2
-from database.database_manager import DatabaseManager, Question, School, Difficulty, Subject, QuestionAnswered, User
+from database.database_manager import *
 from login_window import Login
 import os
 
@@ -26,7 +26,7 @@ STATE_LOGIN_SCREEN = 4
 
 db = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
 data = db.fetch_all_questions()
-
+print(data)
 
 class Player(arcade.Sprite):
     def __init__(self, img, scale):
@@ -34,21 +34,22 @@ class Player(arcade.Sprite):
 
 
 class AnswerSprite(arcade.Sprite):
-    def __init__(self, img, scale, question_id, correct_answer_text):
+    def __init__(self, img, scale, answer_class):
         super().__init__(img, scale)
-        self.question_id = question_id
-        self.text = correct_answer_text.replace(' ', '\n')
+        self.answer_class = answer_class
+        
+        # This exists for now because the text 'may' not fit into the sprite box on screen.
+        self.text = answer_class['answer'].replace(' ', '\n')
 
 
 class IncorrectSprite(AnswerSprite):
-    def __init__(self, img, scale, question_id, incorrect_answer_text):
-        super().__init__(img, scale, question_id, incorrect_answer_text)
-        self.raw_text = incorrect_answer_text
+    def __init__(self, img, scale, answer_class):
+        super().__init__(img, scale, answer_class)
 
 
 class CorrectSprite(AnswerSprite):
-    def __init__(self, img, scale, question_id, correct_answer_text):
-        super().__init__(img, scale, question_id, correct_answer_text)
+    def __init__(self, img, scale, answer_class):
+        super().__init__(img, scale, answer_class)
 
 
 class CloudSprite(arcade.Sprite):
@@ -57,15 +58,23 @@ class CloudSprite(arcade.Sprite):
             
 
 class MyGame(arcade.Window):
-    def __init__(self, width, height, title, email=None, passcode=None):
+    def __init__(self, width, height, title, user_id=None, user_passcode=None):
         super().__init__(width, height, title)
         self.width = width
         self.height = height
 
-        self.player_email = email
-        self.player_passcode = passcode
-        self.player_id = db.fetch_user(self.player_email)[0]
-        print(f"User: {self.player_id}")
+        self.user_id = user_id
+        self.user_passcode = user_passcode
+
+        # AUTHORISE THE USER, QUIT IF INVALID LOGIN CREDENTIALS
+        self.user = db.fetch_user_using_id(self.user_id)
+
+        if db.auth_user(self.user['username'], self.user_passcode, self.user['school_id']):
+            print("USER_ID AND PASSCODE MATCH!!!")
+        else:
+            print("INVALID CREDENTIALS")
+            quit()
+
 
         arcade.set_background_color(arcade.color.BABY_BLUE)
 
@@ -144,9 +153,9 @@ class MyGame(arcade.Window):
         arcade.draw_text("Direct them using the mouse and collect all the correct answers!", 0, self.height-300, arcade.color.BLACK, 18, self.width, 'center')
         arcade.draw_text("Try and avoid the wrong answers... they hurt you!", 0, self.height-350, arcade.color.BLACK, 18, self.width, 'center')
         
-        arcade.draw_text(f"Email: {self.player_email}", 0, self.height//2, arcade.color.BLACK, 18, self.width, 'center')
-        arcade.draw_text(f"Passcode: {self.player_passcode}", 0, self.height//2 - 50, arcade.color.BLACK, 18, self.width, 'center')
-        arcade.draw_text(f"Player ID: {self.player_id}", 0, self.height//2 - 100, arcade.color.BLACK, 18, self.width, 'center')
+        arcade.draw_text(f"Username: {self.user['username']}", 0, self.height//2, arcade.color.BLACK, 18, self.width, 'center')
+        arcade.draw_text(f"Passcode: {self.user['passcode']}", 0, self.height//2 - 50, arcade.color.BLACK, 18, self.width, 'center')
+        arcade.draw_text(f"Player ID: {self.user['id']}", 0, self.height//2 - 100, arcade.color.BLACK, 18, self.width, 'center')
         
 
         arcade.draw_text("Click anywhere to start...", 0, 150, arcade.color.BLACK, 18, self.width, 'center')
@@ -176,6 +185,7 @@ class MyGame(arcade.Window):
     def on_mouse_press(self, x, y, button, modifiers):
         if self.current_state == STATE_INSTRUCTIONS:
             self.current_state = STATE_GAME_RUNNING
+            # the setup is needed incase the user wants to replay the game again after dying.
             self.setup()
 
         elif self.current_state == STATE_GAME_OVER:
@@ -239,22 +249,20 @@ class MyGame(arcade.Window):
             
             # creates more sprites if there are not enough.
             if self.delta_time_elapsed > 2:
-                if random.randrange(0, 3) == 0:
-                    print("Create correct sprite")
-                    self.create_correct_sprite(self.current_q_and_a.question_id, self.current_q_and_a.answer)
+                self.delta_time_elapsed = 0
+                random_answer_index = random.randrange(0, len(self.current_answers))
+
+                if self.current_answers[random_answer_index]['correct'] == True:
+                    self.create_correct_sprite(self.current_answers[random_answer_index])
+                    print("Created correct sprite")
                     
                 else:
-                    print("Create incorrect sprite")
-                    # Need to generate an incorrect answer, append to list of the wrong answers (should mirror index of
-                    # incorrect sprites on screen), then draw sprite.
-
-                    wrong_answers = [self.current_q_and_a.incorrect_1, self.current_q_and_a.incorrect_2, self.current_q_and_a.incorrect_3]
-                    wrong_text = wrong_answers[random.randrange(0, 2)]
-                    self.create_incorrect_sprite(self.current_q_and_a.question_id, wrong_text)
+                    self.create_incorrect_sprite(self.current_answers[random_answer_index])
+                    print("Created incorrect sprite")
 
                 self.create_cloud_sprite()
-                self.delta_time_elapsed = 0
 
+            # TODO: Combine the two FOR loops to remove repetition
             # speeds up each sprite. if off screen -> remove the sprite.
             for sprite in self.incorrect_sprites_list:
                 sprite.center_y += self.movement_speed
@@ -284,7 +292,7 @@ class MyGame(arcade.Window):
             if incorrect_answers_hit_list:
                 for incorrect in incorrect_answers_hit_list:
                     # updates QuestionAnswered
-                    q_a = QuestionAnswered(self.player_id, incorrect.question_id, False, incorrect.raw_text)
+                    q_a = QuestionAnswered(self.user_id, incorrect.answer_class['question_id'], incorrect.answer_class['answer_id'])
                     self.QuestionsAnswered.append(q_a)
 
                     incorrect.remove_from_sprite_lists()
@@ -293,19 +301,24 @@ class MyGame(arcade.Window):
                     
             if correct_answers_hit_list:
                 for correct in correct_answers_hit_list:
-                    print(f"{correct.question_id}, {self.current_q_and_a.question_id}")
-                    if correct.question_id == self.current_q_and_a.question_id:
-                        correct.remove_from_sprite_lists()
-
+                    # this is needed because previous correct answers may still be flying up the screen when the next question is displayed.
+                    if correct.answer_class['question_id'] == self.current_question['id']:
+                        # speeds up the objects (makes the game harder)
                         self.movement_speed += 0.5
 
                         # updates QuestionAnswered
-                        q_a = QuestionAnswered(self.player_id, self.current_q_and_a.question_id, True, self.current_q_and_a.answer)
+                        q_a = QuestionAnswered(self.user_id, correct.answer_class['question_id'], correct.answer_class['answer_id'])
                         self.QuestionsAnswered.append(q_a)
 
-                        self.player_score += int(self.current_q_and_a.difficulty_id)
+                        # TODO: This player_score should be removed or changed. Dodgey logic, perhaps replace with a questions_answered_correctly score?
+                        self.player_score += int(self.current_question['difficulty_id'])
+                        
+                        correct.remove_from_sprite_lists()
                         self.update_next_question()
+                    
+                    # TODO: Eventually remove this conditional. It should either append the answer to questionsanswered or just ignore the result as it may be a genuine mistake on the player's behalf.
                     else:
+                        print("This conditional is still reachable... fix this!")
                         self.update_next_question()
                         correct.remove_from_sprite_lists()
                         self.player_lives -= 1
@@ -316,31 +329,25 @@ class MyGame(arcade.Window):
 
         elif self.current_state == STATE_GAME_OVER:
             # update the database
-            for entity in self.QuestionsAnswered:
-                db.insert_question_answered(entity)
-                print(f"Inserting entity question ID: {entity.question_id}")
-            self.QuestionsAnswered = []
+            self.write_questions_answered_to_database()
         
         elif self.current_state == STATE_GAME_PAUSED:
             # update the database
-            for entity in self.QuestionsAnswered:
-                db.insert_question_answered(entity)
-                print(f"Inserting entity question ID: {entity.question_id}")
-            self.QuestionsAnswered = []
+            self.write_questions_answered_to_database()
 
         else:
             pass
 
 
-    def create_incorrect_sprite(self, question_id, incorrect_answer_text):
-        incorrect = IncorrectSprite("images/incorrect_01.png", incorrect_scaling, question_id, incorrect_answer_text)
+    def create_incorrect_sprite(self, answer_class):
+        incorrect = IncorrectSprite("images/incorrect_01.png", incorrect_scaling, answer_class)
         incorrect.center_x = random.randrange(self.width)
         incorrect.center_y = random.randrange(-100, -50)
         self.incorrect_sprites_list.append(incorrect)
         
 
-    def create_correct_sprite(self, question_id, correct_answer_text):
-        correct = CorrectSprite("images/incorrect_01.png", correct_scaling, question_id, correct_answer_text)
+    def create_correct_sprite(self, answer_class):
+        correct = CorrectSprite("images/incorrect_01.png", correct_scaling, answer_class)
         correct.center_x = random.randrange(self.width)
         correct.center_y = random.randrange(-100, -50)
         self.correct_sprites_list.append(correct)
@@ -362,7 +369,7 @@ class MyGame(arcade.Window):
     def draw_toolbar(self):
         # white bar + difficulty (question)
         arcade.draw_lrtb_rectangle_filled(self.width*0.15, self.width*0.85, self.height, self.height-100, arcade.color.WHITE)
-        arcade.draw_text(f"Difficulty: {self.current_q_and_a.difficulty_id}", self.width*0.15, self.height-95, arcade.color.BLACK, font_size=12, width=int(self.width*0.85-self.width*0.15), align="center")
+        arcade.draw_text(f"Difficulty: {self.current_question['difficulty_id']}", self.width*0.15, self.height-95, arcade.color.BLACK, font_size=12, width=int(self.width*0.85-self.width*0.15), align="center")
 
         # lives box (right side)
         arcade.draw_lrtb_rectangle_filled(0, self.width*0.15, self.height, self.height-100, (149, 249, 227))
@@ -376,10 +383,10 @@ class MyGame(arcade.Window):
     
         # draw the question text
         arcade.draw_text("Question", self.width*0.15, self.height-22, arcade.color.BLACK, font_size=16, width=int(self.width*0.85-self.width*0.15), align="center")
-        if len(self.current_q_and_a.question) > 40:
+        if len(self.current_question['question']) > 40:
             current_question_string = ""
             line_height_displacement = 50
-            for char in self.current_q_and_a.question:
+            for char in self.current_question['question']:
                 if len(current_question_string) >= 40:
                     arcade.draw_text(current_question_string, self.width*0.15, self.height-line_height_displacement, arcade.color.DARK_MOSS_GREEN, font_size=20, width=int(self.width*0.85-self.width*0.15), align="center")
                     line_height_displacement += 25
@@ -390,17 +397,29 @@ class MyGame(arcade.Window):
                 arcade.draw_text(current_question_string, self.width*0.15, self.height-line_height_displacement, arcade.color.DARK_MOSS_GREEN, font_size=20, width=int(self.width*0.85-self.width*0.15), align="center")
 
         else:
-            arcade.draw_text(self.current_q_and_a.question, self.width*0.15, self.height-55, arcade.color.DARK_MOSS_GREEN, font_size=20, width=int(self.width*0.85-self.width*0.15), align="center")
+            arcade.draw_text(self.current_question['question'], self.width*0.15, self.height-55, arcade.color.DARK_MOSS_GREEN, font_size=20, width=int(self.width*0.85-self.width*0.15), align="center")
 
     
+    # TODO: Fix the current_question logic. It fetches the questions, then fetches them again.
     def update_next_question(self):
         self.current_q_and_a_pointer += 1
 
         # if it can't fetch the next question (e.g. end of list), default to game over.
         try:
-            self.current_q_and_a = data[self.current_q_and_a_pointer]
+            self.current_question = data[self.current_q_and_a_pointer]
+
+            self.current_q_and_a = db.fetch_question_and_answers(self.current_question['id'])
+            self.current_question = self.current_q_and_a[0]
+            self.current_answers = self.current_q_and_a[1]
+        
         except:
             self.current_state = STATE_GAME_OVER
+
+    def write_questions_answered_to_database(self):
+        for entity in self.QuestionsAnswered:
+            db.insert_question_answered(entity)
+            print(f"Inserting entity -> Question ID: {entity.question_id}, Answer ID: {entity.answer_id}...")
+        self.QuestionsAnswered = []
 
 
 if __name__ == "__main__":
@@ -408,7 +427,7 @@ if __name__ == "__main__":
     # login = Login()
     # login.draw_window()
 
-    window = MyGame(width, height, title, "reece@cowes.com", 5678)
+    window = MyGame(width, height, title, user_id=3, user_passcode='5678')
     window.setup()
 
 
