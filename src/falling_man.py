@@ -1,6 +1,7 @@
 import arcade
 import random
 import psycopg2
+import datetime
 from database.database_manager import *
 from login_window import Login
 import os
@@ -24,7 +25,8 @@ STATE_GAME_OVER = 3
 STATE_LOGIN_SCREEN = 4
 
 
-db = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
+# db = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
+db = DatabaseManager(psycopg2.connect("dbname='game' user='pi' password='raspberry' host='pi.local' port='5432'"))
 data = db.fetch_all_questions()
 print(data)
 
@@ -246,21 +248,40 @@ class MyGame(arcade.Window):
             self.incorrect_sprites_list.update()
 
             self.cloud_sprites_list.update()
-            
-            # creates more sprites if there are not enough.
-            if self.delta_time_elapsed > 2:
-                self.delta_time_elapsed = 0
-                random_answer_index = random.randrange(0, len(self.current_answers))
 
-                if self.current_answers[random_answer_index]['correct'] == True:
-                    self.create_correct_sprite(self.current_answers[random_answer_index])
-                    print("Created correct sprite")
-                    
+            #
+            # ANSWER SPRITE GENERATION
+            #
+
+            # The sprite list(s) may be empty -> error may occur.
+            try:
+                lowest_correct_sprite = self.correct_sprites_list[-1].center_y
+            except:
+                # no sprite exists, therefore set a default value that is massive
+                lowest_correct_sprite = 9999
+            try:
+                lowest_incorrect_sprite = self.incorrect_sprites_list[-1].center_y
+            except:
+                # no sprite exists, therefore set a default value that is massive
+                lowest_incorrect_sprite = 9999
+
+            # Creates more sprites if not enough have been spawned or spawned in certain amount of time.
+            try:
+                # this determines how far up the screen the latest made/lowest down sprite is.
+                two_sprite_lists_min_value = min(lowest_correct_sprite, lowest_incorrect_sprite)
+                
+                if two_sprite_lists_min_value > 150:
+                    print("Last sprite on screen is above 150px")
+                    self.generate_random_answer_sprite()
                 else:
-                    self.create_incorrect_sprite(self.current_answers[random_answer_index])
-                    print("Created incorrect sprite")
+                    if self.delta_time_elapsed > 2:
+                        print("its been 2 seconds")
+                        self.generate_random_answer_sprite()
+            except:
+                pass
 
-                self.create_cloud_sprite()
+            
+
 
             # TODO: Combine the two FOR loops to remove repetition
             # speeds up each sprite. if off screen -> remove the sprite.
@@ -292,7 +313,8 @@ class MyGame(arcade.Window):
             if incorrect_answers_hit_list:
                 for incorrect in incorrect_answers_hit_list:
                     # updates QuestionAnswered
-                    q_a = QuestionAnswered(self.user_id, incorrect.answer_class['question_id'], incorrect.answer_class['answer_id'])
+                    q_a = QuestionAnswered(self.user_id, incorrect.answer_class['question_id'], incorrect.answer_class['answer_id'], datetime.datetime.now())
+                    print(f"JUST ANSWERED AT: {q_a.time}")
                     self.QuestionsAnswered.append(q_a)
 
                     incorrect.remove_from_sprite_lists()
@@ -307,7 +329,8 @@ class MyGame(arcade.Window):
                         self.movement_speed += 0.5
 
                         # updates QuestionAnswered
-                        q_a = QuestionAnswered(self.user_id, correct.answer_class['question_id'], correct.answer_class['answer_id'])
+                        q_a = QuestionAnswered(self.user_id, correct.answer_class['question_id'], correct.answer_class['answer_id'], datetime.datetime.now())
+                        print(f"JUST ANSWERED AT: {q_a.time}")
                         self.QuestionsAnswered.append(q_a)
 
                         # TODO: This player_score should be removed or changed. Dodgey logic, perhaps replace with a questions_answered_correctly score?
@@ -361,9 +384,24 @@ class MyGame(arcade.Window):
         self.cloud_sprites_list.append(cloud)
 
 
+    def generate_random_answer_sprite(self):
+        self.delta_time_elapsed = 0
+        random_answer_index = random.randrange(0, len(self.current_answers))
+
+        if self.current_answers[random_answer_index]['correct'] == True:
+            self.create_correct_sprite(self.current_answers[random_answer_index])
+            print("Created correct sprite")
+            
+        else:
+            self.create_incorrect_sprite(self.current_answers[random_answer_index])
+            print("Created incorrect sprite")
+
+        self.create_cloud_sprite()
+
+
     def draw_text_on_sprites(self, sprite_list):
         for sprite in sprite_list:
-            arcade.draw_text(sprite.text, sprite.left, sprite.center_y, color=arcade.color.BLACK, font_size=answer_font_size, width=int(sprite.right-sprite.left), align="center", anchor_y="center")
+            arcade.draw_text(sprite.text, sprite.left, sprite.center_y, color=arcade.color.WHITE, font_size=answer_font_size, width=int(sprite.right-sprite.left), align="center", anchor_y="center")
 
 
     def draw_toolbar(self):
@@ -415,10 +453,11 @@ class MyGame(arcade.Window):
         except:
             self.current_state = STATE_GAME_OVER
 
+
     def write_questions_answered_to_database(self):
         for entity in self.QuestionsAnswered:
             db.insert_question_answered(entity)
-            print(f"Inserting entity -> Question ID: {entity.question_id}, Answer ID: {entity.answer_id}...")
+            print(f"Inserting entity -> Question ID: {entity.question_id}, Answer ID: {entity.answer_id}, Time: {entity.time}...")
         self.QuestionsAnswered = []
 
 
