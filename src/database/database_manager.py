@@ -290,6 +290,7 @@ class DatabaseManager:
 		SELECT user_id, user_name, user_nickname, school_name, sum(difficulty_id) AS score FROM summary
 		WHERE correct = true AND user_id = %s
 		GROUP BY user_id, user_name, user_nickname, school_name
+        ORDER BY user_id ASC
         """,
         (user_id,))
         return self.cursor.fetchone()
@@ -309,6 +310,7 @@ class DatabaseManager:
 		SELECT user_id, user_name, user_nickname, sum(difficulty_id) AS score FROM summary
 		WHERE correct = true
 		GROUP BY user_id, user_name, user_nickname
+        ORDER BY user_id ASC
         """,
         (school_id, subject_id))
 
@@ -329,6 +331,7 @@ class DatabaseManager:
 		SELECT user_id, user_name, user_nickname, sum(difficulty_id) AS score FROM summary
 		WHERE correct = true
 		GROUP BY user_id, user_name, user_nickname
+        ORDER BY user_id ASC
         """,
         (school_id,))
 
@@ -351,6 +354,7 @@ class DatabaseManager:
 		SELECT user_id, sum(difficulty_id) AS score, user_name, user_nickname, school_name FROM summary
 		WHERE correct = true
 		GROUP BY user_id, user_name, user_nickname, school_name
+        ORDER BY user_id ASC
         """)
 
         return self.cursor.fetchall()
@@ -395,10 +399,10 @@ class DatabaseManager:
     
     def insert_question_answered(self, questionanswered_class):
         self.cursor.execute("""
-        INSERT INTO QuestionAnswered (user_id, question_id, answer_id)
-        VALUES (%s, %s, %s)
+        INSERT INTO QuestionAnswered (user_id, question_id, answer_id, time)
+        VALUES (%s, %s, %s, %s)
         """,
-        (questionanswered_class.user_id, questionanswered_class.question_id, questionanswered_class.answer_id))
+        (questionanswered_class.user_id, questionanswered_class.question_id, questionanswered_class.answer_id, questionanswered_class.time))
 
         self.conn.commit()
     
@@ -533,7 +537,7 @@ class DatabaseManager:
                                        [Answer(True, '100'),
                                         Answer(False, '110'),
                                         Answer(False, '1010')])
-        self.insert_answer(Answer(True, '120', 1))
+        self.insert_answer(Answer(False, '120', 1))
 
         self.add_question_with_answers(Question("What is 25% of 8?", 4, 'PERCENTAGE', 'MATHS'),
                                        [Answer(True, '2'),
@@ -663,7 +667,8 @@ class QuestionAnswered:
 
 
 if __name__ == "__main__":
-    d = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
+    # d = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
+    d = DatabaseManager(psycopg2.connect("dbname='game' user='pi' password='raspberry' host='pi.local' port='5432'"))
 
 
     d.setup()
