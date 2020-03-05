@@ -1,7 +1,12 @@
-from database_manager import *
-import unittest
+from database.database_manager import DatabaseManager
+from database.database_classes import School, Difficulty, Subject, YearGroup, Topic, Teacher, User, Question, Answer, QuestionAnswered
 
-d = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
+import psycopg2
+import unittest
+import datetime
+
+# d = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
+d = DatabaseManager(psycopg2.connect("dbname='game' user='pi' password='raspberry' host='pi.local' port='5432'"))
 
 
 class TestAuthUser(unittest.TestCase):
@@ -83,6 +88,7 @@ class TestFetchLeadboardSchoolSubject(unittest.TestCase):
 
     def test_fetch_leaderboard_school_subject_normal(self):
         result = d.fetch_leaderboard_school_subject(1, 'MATHS')
+
         self.assertEqual(result[0]['user_id'], 1, "1st place User_ID not matching")
         self.assertEqual(result[0]['score'], 6, "1st place score not matching")
         self.assertEqual(result[0]['user_name'], "John", "Name isn't what it should be")
@@ -107,4 +113,5 @@ class TestFetchUserTotalScore(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    print("Running tests from root directory")
+    

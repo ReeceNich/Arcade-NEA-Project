@@ -1,5 +1,7 @@
 import psycopg2
 import psycopg2.extras
+import time
+from .database_classes import School, Difficulty, Subject, YearGroup, Topic, Teacher, User, Question, Answer, QuestionAnswered
 
 
 class DatabaseManager:
@@ -398,11 +400,18 @@ class DatabaseManager:
         return q_id  # return ID so the code knows what the new ID is.
     
     def insert_question_answered(self, questionanswered_class):
-        self.cursor.execute("""
-        INSERT INTO QuestionAnswered (user_id, question_id, answer_id, time)
-        VALUES (%s, %s, %s, %s)
-        """,
-        (questionanswered_class.user_id, questionanswered_class.question_id, questionanswered_class.answer_id, questionanswered_class.time))
+        if questionanswered_class.time:
+            self.cursor.execute("""
+            INSERT INTO QuestionAnswered (user_id, question_id, answer_id, time)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (questionanswered_class.user_id, questionanswered_class.question_id, questionanswered_class.answer_id, questionanswered_class.time))
+        else:
+            self.cursor.execute("""
+            INSERT INTO QuestionAnswered (user_id, question_id, answer_id)
+            VALUES (%s, %s, %s)
+            """,
+            (questionanswered_class.user_id, questionanswered_class.question_id, questionanswered_class.answer_id))
 
         self.conn.commit()
     
@@ -573,7 +582,6 @@ class DatabaseManager:
         self.insert_question_answered(QuestionAnswered(2, 1, 1))
         self.insert_question_answered(QuestionAnswered(2, 2, 1))
         self.insert_question_answered(QuestionAnswered(2, 3, 2))
-
         self.insert_question_answered(QuestionAnswered(1, 4, 1))
 
         print("Successfully reset and recreated the database!")
@@ -585,85 +593,6 @@ class DatabaseManager:
         # self.add_question( Question("Whats the gradient of y=3x+4", '3', '3/4', '4/3', '4', 'MATHS', '5') )
 
 
-
-# 
-#   Database classes (used as data structures)
-# 
-
-class School:
-    def __init__(self, name, contact=None, id=None):
-        self.id = id
-        self.name = name
-        self.contact = contact
-
-
-class Difficulty:
-    def __init__(self, id, name):
-        self.id = id
-        self.name = name
-
-
-class Subject:
-    def __init__(self, id, name):
-        self.id = id
-        self.name = name
-
-
-class YearGroup:
-    def __init__(self, id, name):
-        self.id = id
-        self.name = name
-
-
-class Topic:
-    def __init__(self, id, name, subject_id):
-        self.id = id
-        self.name = name
-        self.subject_id = subject_id
-
-
-class Teacher:
-    def __init__(self, username, passcode, school_id, id=None):
-        self.id = id
-        self.username = username
-        self.passcode = passcode
-        self.school_id = school_id
-
-
-class User:
-    def __init__(self, name, username, passcode, nickname, year_group_id, school_id, id=None):
-        self.id = id
-        self.name = name
-        self.username = username
-        self.passcode = passcode
-        self.nickname = nickname
-        self.year_group_id = year_group_id
-        self.school_id = school_id
-
-
-class Question:
-    def __init__(self, question, difficulty_id, topic_id, subject_id, id=None):
-        self.id = id
-        self.question = question
-        self.difficulty_id = difficulty_id
-        self.topic_id = topic_id
-        self.subject_id = subject_id
-
-
-class Answer:
-    def __init__(self, correct, answer, question_id=None, answer_id=None):
-        self.question_id = question_id
-        self.answer_id = answer_id
-        self.correct = correct
-        self.answer = answer
-
-
-class QuestionAnswered:
-    def __init__(self, user_id, question_id, answer_id, time=None):
-        self.user_id = user_id
-        self.question_id = question_id
-        self.answer_id = answer_id
-        self.time = time
 
 
 if __name__ == "__main__":

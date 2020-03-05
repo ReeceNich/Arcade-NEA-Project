@@ -3,7 +3,6 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from http.cookies import SimpleCookie
 from os import curdir, sep
 from jinja2 import Template, Environment, FileSystemLoader
-#from database_manager import DatabaseManager
 
 
 from http import cookies
