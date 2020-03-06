@@ -139,8 +139,7 @@ class DatabaseManager:
                                        FOREIGN KEY(question_id) REFERENCES Question (id) ON DELETE CASCADE
                                        )
         """)
-
-
+        
         self.conn.commit()
 
     
@@ -167,6 +166,16 @@ class DatabaseManager:
         SELECT * FROM Question
         """)
 
+        return self.cursor.fetchall()
+
+    # Randomises the questions.
+    def fetch_questions_by_topic(self, topic_class):
+        self.cursor.execute("""
+        SELECT * FROM Question
+        WHERE Question.topic_id = %s AND Question.subject_id = %s
+        ORDER BY RANDOM()
+        """,
+        (topic_class.id, topic_class.subject_id))
         return self.cursor.fetchall()
 
     def fetch_question(self, question_id):
@@ -229,6 +238,14 @@ class DatabaseManager:
         """,
         (subject_id,))
         return self.cursor.fetchone()
+    
+    def fetch_topic_by_subject(self, subject_id):
+        self.cursor.execute("""
+        SELECT * FROM Topic
+        WHERE subject_id = %s
+        """,
+        (subject_id,))
+        return self.cursor.fetchall()
     
     def fetch_school(self, school_id):
         self.cursor.execute("""
@@ -564,6 +581,18 @@ class DatabaseManager:
         self.add_question_with_answers(Question("Does this statement produce an error: print(Hello)", 1, 'PYTHON', 'COMP_SCI'),
                                        [Answer(True, 'No'),
                                         Answer(False, 'Yes')])
+
+        self.add_question_with_answers(Question("What is 50% of 30?", 2, 'PERCENTAGE', 'MATHS'),
+                                       [Answer(True, '15'),
+                                        Answer(False, '25'),
+                                        Answer(False, '60'),
+                                        Answer(False, '10')])
+
+        self.add_question_with_answers(Question("What is 75% of 60?", 5, 'PERCENTAGE', 'MATHS'),
+                                       [Answer(True, '45'),
+                                        Answer(False, '35'),
+                                        Answer(False, '50'),
+                                        Answer(False, '30')])
 
         self.insert_question_answered(QuestionAnswered(1, 1, 1))
         self.insert_question_answered(QuestionAnswered(1, 1, 2))
