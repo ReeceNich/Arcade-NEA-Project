@@ -2,6 +2,7 @@ from game.login_window import Login
 from database.database_manager import DatabaseManager
 from database.database_classes import School, Difficulty, Subject, YearGroup, Topic, Teacher, User, Question, Answer, QuestionAnswered
 import psycopg2
+import tkinter
 
 
 # db = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
@@ -11,14 +12,14 @@ authenticated = None
 
 while not authenticated:
 
-    login = Login()
-    # login.draw_window()
-    login.window.destroy()
-    login.username = "rnicholls13"
-    login.passcode = "5678"
-    login.school_id = 2
+    login = Login(db)
+    login.draw_window()
+    # login.window.destroy()
+    # login.username = "rnicholls13"
+    # login.passcode = "5678"
+    # login.school_id = 2
 
-    if login.username and login.passcode and login.school_id:
+    if login.username and login.passcode and login.school_id and login.subject_id and login.topic_id:
         import arcade
         from game.constants import Constants
         from game.falling_man import MyGame
@@ -28,7 +29,7 @@ while not authenticated:
         if authenticated:
             print("Successfully authenticated")
             constants = Constants()
-            window = MyGame(constants, constants.width, constants.height, constants.title, database_manager=db, username=login.username, school_id=login.school_id)
+            window = MyGame(constants, constants.width, constants.height, constants.title, database_manager=db, login=login)
             window.setup()
 
             arcade.run()

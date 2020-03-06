@@ -9,13 +9,13 @@ from database.database_classes import QuestionAnswered
 
 
 class MyGame(arcade.Window):
-    def __init__(self, constants, width, height, title, database_manager, username, school_id):
+    def __init__(self, constants, width, height, title, database_manager, login):
         super().__init__(width, height, title)
         self.constants = constants
 
         self.db = database_manager
-        self.username = username
-        self.school_id = school_id
+        self.username = login.username
+        self.school_id = login.school_id
 
         # Fetch the users profile
         self.user = self.db.fetch_user(self.username, self.school_id)
