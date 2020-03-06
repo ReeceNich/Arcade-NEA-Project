@@ -5,7 +5,7 @@ import datetime
 import os
 from .sprites import Player, AnswerSprite, CorrectSprite, IncorrectSprite, CloudSprite
 from .constants import Constants
-from database.database_classes import QuestionAnswered
+from database.database_classes import QuestionAnswered, Topic
 
 
 class MyGame(arcade.Window):
@@ -16,6 +16,8 @@ class MyGame(arcade.Window):
         self.db = database_manager
         self.username = login.username
         self.school_id = login.school_id
+        self.topic_id = login.topic_id
+        self.subject_id = login.subject_id
 
         # Fetch the users profile
         self.user = self.db.fetch_user(self.username, self.school_id)
@@ -34,7 +36,7 @@ class MyGame(arcade.Window):
 
 
     def setup(self):
-        self.data = self.db.fetch_all_questions()
+        self.data = self.db.fetch_questions_by_topic(Topic(id=self.topic_id, name=None, subject_id=self.subject_id))
         print(f" print data {self.data}")
 
         # create sprites etc for a my game
