@@ -1,64 +1,7 @@
-from database_manager import *
+from database.database_manager import *
+from database.database_classes import *
 import psycopg2
 import random
-
-def create_dummy_database():
-    conn = psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'")
-    db = DatabaseManager(conn)
-
-    db.drop_all()
-    db.setup()
-
-    # q1 = Question('What is 12x12?', '144', '121', '141', '240', 'Maths', 2)
-    # q2 = Question('What does CPU stand for?', 'Central Processing Unit', 'Central Power Unit', 'Computing Power Unit', 'Computer Programming Unit', 'Comp Sci', 1)
-    # q3 = Question('How do you find the gradient of a polynomial equation?', 'Differentiate', 'Integrate', 'Simultaneous Equations', 'Square Root', 'Maths', 3)
-
-    # db.insert_question(q1)
-    # db.insert_question(q2)
-    # db.insert_question(q3)
-
-    # results = db.fetch_all()
-    # print(results[0].question, results[0].answer)
-
-
-    add_dummy_difficulties(db)
-    add_dummy_subjects(db)
-    add_dummy_question(db)
-    
-    print("Created dummy database!")
-
-def add_dummy_difficulties(db):
-    difficulties = [Difficulty("Very Easy", 1), Difficulty("Easy", 2), Difficulty("Medium", 3), Difficulty("Hard", 4), Difficulty("Very Hard", 5)]
-    for i in difficulties:
-        db.insert_difficulty(i)
-
-def add_dummy_subjects(db):
-    subjects = [Subject("MATHS", "Maths"),
-                Subject("COMP_SCI", "Computer Science"),
-                Subject("GEOGRAPHY", "Geography"),
-                Subject("FRENCH", "French"),
-                Subject("ENG_LIT", "English Literature"),
-                Subject("ENG_LANG", "English Language")]
-    
-    for s in subjects:
-        db.insert_subject(s)
-
-def add_dummy_question(db):
-    questions = [Question('What is 12x12?', '144', '121', '141', '240', subject_id="MATHS", difficulty_id=2),
-                 Question('What colour is grass?', 'Green', 'Blue', 'Red', 'Pink', subject_id="GEOGRAPHY", difficulty_id=1),
-                 Question('Translate "Hello" into French', 'Bonjour', 'Hola', 'Je Suis', 'Pomme', subject_id="FRENCH", difficulty_id=1),
-                 Question('Who wrote "A Christmas Carol"?', 'Charles Dickens', 'Thomas Hardy', 'William Shakespeare', 'J. K. Rowling', subject_id="ENG_LIT", difficulty_id=3)]
-
-    for q in questions:
-        q.question_id = db.insert_question(q)
-        db.insert_question_difficulty(q)
-        db.insert_question_subject(q)
-
-
-def drop_everything():
-    conn = psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'")
-    db = DatabaseManager(conn)
-    db.drop_all()
 
 
 ### MAIN PROGRAM STARTS HERE ###
@@ -75,26 +18,33 @@ def get_choice(options):
             print("Invalid choice, try again...")
 
 
-def main():
+def main(db_config_string):
+    db = DatabaseManager(psycopg2.connect(db_config_string))
+
     print("Welcome to the database management system")
     print("")
     print("Here are your options:")
 
     options = {
         1: "Add a school",
-        2: "Add a user",
+        2: "Add a year group",
         3: "Add a difficulty",
         4: "Add a subject",
-        5: "Add a question",
-        0: "Exit",
+        
+        5: "Add a topic",
+        6: "Add a user",
+        7: "Add a teacher",
+        8: "Add a question",
+        9: "Add an answer",
+        10: "Add a QuestionAnswered",
+        0: "Exit"
     }
     for key, value in options.items():
         print(f"{key}. {value}")
     print("")
 
     choice = get_choice(options)
-    db = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
-
+    
     print("")
     print(f"*** SELECTED: {options[choice]} ***")
     if choice == 0:
@@ -102,54 +52,97 @@ def main():
 
     elif choice == 1:
         name = input("Enter the school name > ")
-        school = School(name=name)
+        contact = input("Enter the contact info (leave blank if none) > ")
+
+        school = School(name, contact)
         s_id = db.insert_school(school)
         print("")
         print(f"New school ID is: {s_id}")
 
     elif choice == 2:
-        name = input("Enter the name > ")
-        passcode = input("Enter a passcode (blank for random) > ")
-        email = input("Enter their email address > ")
-        school_id = input("Enter their school ID > ")
-
-        if passcode == "":
-            passcode = random.randrange(1000, 9999)
-            passcode = str(passcode)
-
-        user = User(name, passcode, email, school_id)
-        u_id = db.insert_user(user)
-        print("")
-        print(f"Users new ID is: {u_id}")
-        print(f"Users new passcode is: {passcode}")
+        name = input("Enter the year group name > ")
+        id = input("Enter the ID (number of the year group) > ")
+        yeargroup = YearGroup(id, name)
+        db.insert_year_group(yeargroup)
 
     elif choice == 3:
-        description = input("Enter difficulty description > ")
-        d_id = int(input("Enter difficulty ID > "))
-        diff = Difficulty(description, d_id)
+        name = input("Enter difficulty name > ")
+        id = int(input("Enter difficulty ID > "))
+        diff = Difficulty(id, name)
         db.insert_difficulty(diff)
 
     elif choice == 4:
         name = input("Enter subject name > ")
-        s_id = input("Enter subject ID > ")
-        sub = Subject(s_id, name)
+        id = input("Enter subject ID > ")
+        sub = Subject(id, name)
         db.insert_subject(sub)
 
-    elif choice == 5:
-        q = input("Enter question > ")
-        ans = input("Enter correct answer > ")
-        inc_1 = input("Enter invalid answer > ")
-        inc_2 = input("Enter another invalid answer > ")
-        inc_3 = input("Enter another invalid answer > ")
-        s_id = input("Enter subject ID for this question > ")
-        d_id = int(input("Enter difficulty ID for this question > "))
-        question = Question(q, ans, inc_1, inc_2, inc_3, s_id, d_id)
-        
-        q_id = db.insert_question(question)
-        question.question_id = q_id
 
-        db.insert_question_subject(question)
-        db.insert_question_difficulty(question)
+    # ALL THESE FUNCTIONS REQUIRE TABLES FROM ABOVE.
+
+    elif choice == 5:
+        name = input("Enter topic name > ")
+        id = input("Enter topic ID > ")
+        subject_id = input("Enter subject ID which should topic belong to > ")
+
+        topic = Topic(id, name, subject_id)
+        db.insert_topic(topic)
+
+    elif choice == 6:
+        name = input("Enter the users name > ")
+        username = input("Enter the username (unique per school) > ")
+        nickname = input("Enter a nickname (blank for none) > ")
+        passcode = input("Enter a passcode (blank for random) > ")
+        year_group_id = input("Enter year group ID > ")
+        school_id = input("Enter their school ID > ")
+
+        if passcode == "":
+            passcode = random.randrange(1000, 9999)
+
+        user = User(name, username, passcode, nickname, year_group_id, school_id)
+        u_id = db.insert_user(user)
+        print("")
+        print(f"User's new ID is: {u_id}")
+
+    elif choice == 7:
+        username = input("Enter the username (unique per school) > ")
+        passcode = input("Enter a passcode (blank for random) > ")
+        school_id = input("Enter their school ID > ")
+        
+        if passcode == "":
+            passcode = random.randrange(1000, 9999)
+
+        teacher = Teacher(username, passcode, school_id)
+        db.insert_teacher(teacher)
+        print("")
+        print(f"User's new ID is: {u_id}")
+
+    elif choice == 8:
+        q = input("Enter question > ")
+        s_id = input("Enter subject ID for this question > ")
+        t_id = input("Enter topic ID for this question > ")
+        d_id = int(input("Enter difficulty ID for this question > "))
+        
+        question = Question(q, d_id, t_id, s_id)
+        q_id = db.insert_question(question)
+        print("")
+        print(f"Question's new ID is: {q_id}")
+
+    elif choice == 9:
+        a = input("Enter the answer > ")
+        correct = input("Is the answer a correct answer or not? (y/n) > ")
+        q_id = input("Enter the question ID the answer should belong to > ")
+        answer = Answer(correct, a, q_id)
+        db.insert_answer(answer)
+
+    elif choice == 10:
+        u_id = input("Enter the user's ID > ")
+        q_id = input("Enter the question ID > ")
+        a_id = input("Enter the answer ID > ")
+
+        q_a = QuestionAnswered(u_id, q_id, a_id)
+        db.insert_question_answered(q_a)
+
     else:
         pass
     
@@ -157,5 +150,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # create_dummy_database()
-    main()
+    print("Please run through the run_*.py script in the root directory.")
