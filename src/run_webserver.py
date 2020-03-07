@@ -1,9 +1,10 @@
 import psycopg2
 from database.database_manager import DatabaseManager
 from website.webserver import MyHandler, run
+from configuration import *
 
-# db = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
-db = DatabaseManager(psycopg2.connect("dbname='game' user='pi' password='raspberry' host='pi.local' port='5432'"))
+
+db = DatabaseManager(psycopg2.connect(DB_GAME_PI_LOCAL))
 
 if __name__ == "__main__":
     run(db)

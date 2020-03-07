@@ -1,12 +1,12 @@
 from game.login_window import Login
 from database.database_manager import DatabaseManager
 from database.database_classes import School, Difficulty, Subject, YearGroup, Topic, Teacher, User, Question, Answer, QuestionAnswered
+from configuration import *
 import psycopg2
 import tkinter
 
 
-# db = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
-db = DatabaseManager(psycopg2.connect("dbname='game' user='pi' password='raspberry' host='pi.local' port='5432'"))
+db = DatabaseManager(psycopg2.connect(DB_GAME_PI_LOCAL))
 
 authenticated = None
 
@@ -30,7 +30,7 @@ while not authenticated:
             print("Successfully authenticated")
             constants = Constants()
             window = MyGame(constants, constants.width, constants.height, constants.title, database_manager=db, login=login)
-            window.setup()
+            # window.setup()
 
             arcade.run()
         

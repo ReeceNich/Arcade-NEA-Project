@@ -625,11 +625,4 @@ class DatabaseManager:
 
 
 if __name__ == "__main__":
-    # d = DatabaseManager(psycopg2.connect("dbname='database1' user=postgres password='pass' host='localhost' port='5432'"))
-    d = DatabaseManager(psycopg2.connect("dbname='game' user='pi' password='raspberry' host='pi.local' port='5432'"))
-
-
-    d.setup()
-    d.setup_dummy_data()
-    
-    # d.insert_user(User('Sir', '0000', 'sir@cowes.com', '1'))
+    print("Run using the run_*.py file in the root directory.")
