@@ -4,6 +4,7 @@ import tkinter as tk
 class Login:
     def __init__(self, database_manager):
         self.window = tk.Tk()
+        self.window.title("Login - Falling Man")
         self.db = database_manager
 
         # responsible for getting the list of schools
@@ -86,7 +87,7 @@ class Login:
 
 
     def draw_window(self):
-        self.welcome_label = tk.Label(self.window, text="Welcome!")
+        self.welcome_label = tk.Label(self.window, text="Welcome to Falling Man!")
         self.welcome_label.grid(row=0, column=0, rowspan=1, columnspan=2)
 
         # username
@@ -109,7 +110,7 @@ class Login:
 
         self.school_list_var = tk.StringVar(self.window)
         self.school_list_var.set("-- Select a school --")
-        school_dropdown = tk.OptionMenu(self.window, self.school_list_var, *self.school_name_list)
+        school_dropdown = tk.OptionMenu(self.window, self.school_list_var, "-- Select a school --", *self.school_name_list)
         school_dropdown.grid(row=3, column=1)
 
         # list of subjects
@@ -118,7 +119,7 @@ class Login:
 
         self.subject_list_var = tk.StringVar(self.window)
         self.subject_list_var.set("-- Select a subject --")
-        subject_dropdown = tk.OptionMenu(self.window, self.subject_list_var, *self.subject_name_list, command=self.subject_selected)
+        subject_dropdown = tk.OptionMenu(self.window, self.subject_list_var, "-- Select a subject --", *self.subject_name_list, command=self.subject_selected)
         subject_dropdown.grid(row=4, column=1)
 
 
