@@ -309,27 +309,30 @@ class DatabaseManager:
 		SELECT user_id, user_name, user_nickname, school_name, sum(difficulty_id) AS score FROM summary
 		WHERE correct = true AND user_id = %s
 		GROUP BY user_id, user_name, user_nickname, school_name
-        ORDER BY user_id ASC
+        ORDER BY score DESC
         """,
         (user_id,))
         return self.cursor.fetchone()
 
-    # TODO: Fix this! Fixed, just need to test it. Tests pass, all done!
+
     def fetch_leaderboard_school_subject(self, school_id, subject_id):
         self.cursor.execute("""
-        WITH summary AS (SELECT DISTINCT ON (QuestionAnswered.user_id, QuestionAnswered.question_id) QuestionAnswered.user_id, Users.name AS user_name, Users.nickname AS user_nickname, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
+        WITH summary AS (SELECT DISTINCT ON (QuestionAnswered.user_id, QuestionAnswered.question_id) QuestionAnswered.user_id,
+            Users.name AS user_name, Users.nickname AS user_nickname, QuestionAnswered.question_id, QuestionAnswered.answer_id,
+            Answer.correct, Question.difficulty_id, QuestionAnswered.time FROM QuestionAnswered
         JOIN Question ON QuestionAnswered.question_id = Question.id
         JOIN Answer ON QuestionAnswered.answer_id = Answer.answer_id AND QuestionAnswered.question_id = Answer.question_id
 		JOIN Users ON QuestionAnswered.user_id = Users.id
 		WHERE Users.school_id = %s AND Question.subject_id = %s
-		GROUP BY QuestionAnswered.user_id, Users.name, Users.nickname, QuestionAnswered.question_id, QuestionAnswered.answer_id, Answer.correct, Question.difficulty_id, QuestionAnswered.time
+		GROUP BY QuestionAnswered.user_id, Users.name, Users.nickname, QuestionAnswered.question_id, QuestionAnswered.answer_id,
+            Answer.correct, Question.difficulty_id, QuestionAnswered.time
 		ORDER BY QuestionAnswered.user_id, QuestionAnswered.question_id, QuestionAnswered.time DESC
 		)
 		
 		SELECT user_id, user_name, user_nickname, sum(difficulty_id) AS score FROM summary
 		WHERE correct = true
 		GROUP BY user_id, user_name, user_nickname
-        ORDER BY user_id ASC
+        ORDER BY score DESC
         """,
         (school_id, subject_id))
 
@@ -350,7 +353,7 @@ class DatabaseManager:
 		SELECT user_id, user_name, user_nickname, sum(difficulty_id) AS score FROM summary
 		WHERE correct = true
 		GROUP BY user_id, user_name, user_nickname
-        ORDER BY user_id ASC
+        ORDER BY score DESC
         """,
         (school_id,))
 
@@ -373,7 +376,7 @@ class DatabaseManager:
 		SELECT user_id, sum(difficulty_id) AS score, user_name, user_nickname, school_name FROM summary
 		WHERE correct = true
 		GROUP BY user_id, user_name, user_nickname, school_name
-        ORDER BY user_id ASC
+        ORDER BY score DESC
         """)
 
         return self.cursor.fetchall()
