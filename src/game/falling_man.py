@@ -56,6 +56,7 @@ class MyGame(arcade.Window):
         self.player_lives = 3
         self.current_q_and_a_pointer = -1
         self.current_q_and_a = None
+        self.out_of_questions = False
         self.update_next_question()
         
         self.player_score = 0
@@ -101,16 +102,18 @@ class MyGame(arcade.Window):
     def draw_instructions(self):
         arcade.draw_rectangle_filled(self.constants.width//2, self.constants.height//2, self.constants.width-100, self.constants.height-100, arcade.color.WHITE)
         arcade.draw_rectangle_outline(self.constants.width//2, self.constants.height//2, self.constants.width-100, self.constants.height-100, arcade.color.BLACK, 5)
-        arcade.draw_text("Welcome to Falling Man!", 0, self.constants.height-150, arcade.color.BLACK, 48, self.constants.width, 'center')
+        arcade.draw_text(f"Welcome to Falling Man!", 0, self.constants.height-150, arcade.color.BLACK, 48, self.constants.width, 'center')
         arcade.draw_text("Your character will be falling through the sky.", 0, self.constants.height-250, arcade.color.BLACK, 18, self.constants.width, 'center')
-        arcade.draw_text("Direct them using the mouse and collect all the correct answers!", 0, self.constants.height-300, arcade.color.BLACK, 18, self.constants.width, 'center')
-        arcade.draw_text("Try and avoid the wrong answers... they hurt you!", 0, self.constants.height-350, arcade.color.BLACK, 18, self.constants.width, 'center')
+        arcade.draw_text("Questions will be at the top of the screen!", 0, self.constants.height-300, arcade.color.BLACK, 18, self.constants.width, 'center')
+        arcade.draw_text("Use your mouse and collect all the correct answers!", 0, self.constants.height-350, arcade.color.BLACK, 18, self.constants.width, 'center')
+        arcade.draw_text("Try and avoid the wrong answers... they hurt you!", 0, self.constants.height-400, arcade.color.BLACK, 18, self.constants.width, 'center')
         
-        arcade.draw_text(f"Username: {self.user['username']}", 0, self.constants.height//2, arcade.color.BLACK, 18, self.constants.width, 'center')
-        arcade.draw_text(f"Passcode: {self.user['passcode']}", 0, self.constants.height//2 - 50, arcade.color.BLACK, 18, self.constants.width, 'center')
-        arcade.draw_text(f"Player ID: {self.user['id']}", 0, self.constants.height//2 - 100, arcade.color.BLACK, 18, self.constants.width, 'center')
+        arcade.draw_text(f"Username: {self.user['username']}", 0, self.constants.height//2, arcade.color.DIM_GRAY, 18, self.constants.width, 'center')
+        arcade.draw_text(f"Name: {self.user['name']}", 0, self.constants.height//2 - 40, arcade.color.DIM_GRAY, 18, self.constants.width, 'center')
+        # arcade.draw_text(f"Passcode: {self.user['passcode']}", 0, self.constants.height//2 - 50, arcade.color.BLACK, 18, self.constants.width, 'center')
+        # arcade.draw_text(f"Player ID: {self.user['id']}", 0, self.constants.height//2 - 100, arcade.color.BLACK, 18, self.constants.width, 'center')
         
-
+        arcade.draw_text(f"Good luck, {self.user['name']}!", 0, 190, arcade.color.BLACK, 18, self.constants.width, 'center')
         arcade.draw_text("Click anywhere to start...", 0, 150, arcade.color.BLACK, 18, self.constants.width, 'center')
 
 
@@ -122,6 +125,8 @@ class MyGame(arcade.Window):
     
     def draw_game_over(self):
         arcade.draw_text("Game Over", 0, self.constants.height//2, arcade.color.DARK_RED, 96, self.constants.width, 'center')
+        if self.out_of_questions:
+            arcade.draw_text("The game ran out of questions... restart a new game", 0, self.constants.height//2 - 85, arcade.color.BLACK, 14, self.constants.width, 'center')
         arcade.draw_text(f"Final score: {self.player_score}", 0, self.constants.height//2 - 125, arcade.color.BLACK, 18, self.constants.width, 'center')
         arcade.draw_text("Click anywhere to go back to the start...", 0, 150, arcade.color.BLACK, 18, self.constants.width, 'center')
 
@@ -415,6 +420,7 @@ class MyGame(arcade.Window):
         except:
             print("out of questions, game over")
             self.current_state = self.constants.STATE_GAME_OVER
+            self.out_of_questions = True
 
 
     def write_questions_answered_to_database(self):
