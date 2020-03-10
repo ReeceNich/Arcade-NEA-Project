@@ -4,6 +4,7 @@ import psycopg2
 import datetime
 import os
 from .sprites import Player, AnswerSprite, CorrectSprite, IncorrectSprite, CloudSprite
+from .sounds import Sounds
 from .constants import Constants
 from database.database_classes import QuestionAnswered, Topic
 
@@ -33,6 +34,7 @@ class MyGame(arcade.Window):
         # required! this enables the images to load.
         file_path = os.path.dirname(os.path.abspath(__file__))
         os.chdir(file_path)
+        self.sounds = Sounds()
 
 
     def setup(self):
@@ -162,6 +164,7 @@ class MyGame(arcade.Window):
             
             # speed up everything is space is pressed (boost capability)
             if key == arcade.key.SPACE:
+                arcade.play_sound(self.sounds.upgrade_3)
                 self.movement_speed += 5
 
 
@@ -186,6 +189,7 @@ class MyGame(arcade.Window):
                 pass
 
             if key == arcade.key.SPACE:
+                arcade.play_sound(self.sounds.fall_3)
                 self.movement_speed -= 5
         
         if self.current_state == self.constants.STATE_GAME_PAUSED:
@@ -276,6 +280,8 @@ class MyGame(arcade.Window):
                         self.QuestionsAnswered.append(q_a)
 
                         incorrect.remove_from_sprite_lists()
+                        arcade.play_sound(self.sounds.explosion_2)
+
                         self.update_next_question()
                         self.player_lives -= 1
                     else:
@@ -284,6 +290,8 @@ class MyGame(arcade.Window):
                         print("player has answered the previous questions incorrect answer.")
                         self.update_next_question()
                         incorrect.remove_from_sprite_lists()
+                        arcade.play_sound(self.sounds.explosion_2)
+
                         self.player_lives -= 1
 
                     
@@ -303,6 +311,8 @@ class MyGame(arcade.Window):
                         self.player_score += int(self.current_question['difficulty_id'])
                         
                         correct.remove_from_sprite_lists()
+                        arcade.play_sound(self.sounds.coin_5)
+
                         self.update_next_question()
                     
                     else:
@@ -311,9 +321,12 @@ class MyGame(arcade.Window):
                         print("player has answered the previous questions correct answer.")
                         self.update_next_question()
                         correct.remove_from_sprite_lists()
+                        arcade.play_sound(self.sounds.explosion_2)
+
                         self.player_lives -= 1
         
             if self.player_lives == 0:
+                arcade.play_sound(self.sounds.gameover_1)
                 self.current_state = self.constants.STATE_GAME_OVER
         
 
@@ -419,6 +432,7 @@ class MyGame(arcade.Window):
         
         except:
             print("out of questions, game over")
+            arcade.play_sound(self.sounds.gameover_1)
             self.current_state = self.constants.STATE_GAME_OVER
             self.out_of_questions = True
 
