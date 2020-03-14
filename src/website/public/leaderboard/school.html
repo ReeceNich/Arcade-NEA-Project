@@ -8,11 +8,11 @@
 </head>
 <body>
     <a href="/">Home</a>
-    <a href="/leaderboard/index.html">Leaderboards</a>
+    <a href="/leaderboard/index">Leaderboards</a>
 
     <h1>School Leaderboard</h1>
 
-    <form action="/leaderboard/school.html" method="POST">
+    <form action="/leaderboard/school/search" enctype="multipart/form-data" method="POST">
         <select name="school_id">
             {% for school in schools_list %}
                 {% if school_name == school[1] %}
