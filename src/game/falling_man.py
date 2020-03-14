@@ -10,9 +10,9 @@ from database.database_classes import QuestionAnswered, Topic
 
 
 class MyGame(arcade.Window):
-    def __init__(self, constants, width, height, title, database_manager, login):
-        super().__init__(width, height, title)
-        self.constants = constants
+    def __init__(self, database_manager, login):
+        self.constants = Constants()
+        super().__init__(self.constants.width, self.constants.height, self.constants.title)
 
         self.db = database_manager
         self.username = login.username
@@ -31,10 +31,10 @@ class MyGame(arcade.Window):
 
         self.current_state = self.constants.STATE_INSTRUCTIONS
 
-        # required! this enables the images to load.
+        # Required! this enables the images and the sounds to load.
         file_path = os.path.dirname(os.path.abspath(__file__))
         os.chdir(file_path)
-        self.sounds = Sounds()
+        self.sounds = Sounds() # this must come AFTER the os.chdir so that Arcade knows where to find the files.
 
 
     def setup(self):
