@@ -12,7 +12,7 @@
 
     <h1>Subject Leaderboard</h1>
 
-    <form action="/leaderboard/subject.html" method="POST">
+    <form action="/leaderboard/subject/search" enctype="multipart/form-data" method="POST">
         <select name="school_id">
             {% for school in schools_list %}
                 {% if school_name == school[1] %}
