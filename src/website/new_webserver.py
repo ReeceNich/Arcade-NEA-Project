@@ -3,6 +3,7 @@ from jinja2 import Template
 from os import curdir, sep
 import cgi
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.cookies import SimpleCookie
 
 
 tasks = ["Cheese"]
@@ -31,19 +32,36 @@ class requestHandler(BaseHTTPRequestHandler):
 
         raise ValueError("unknown file extension")
 
+    def get_POST_fields(self):
+        ctype, pdict = cgi.parse_header(self.headers.get('content-type'))
+        pdict['boundary'] = bytes(pdict['boundary'], "utf-8")
+        content_len = int(self.headers.get('Content-length'))
+        pdict['CONTENT-LENGTH'] = content_len
+        if ctype == "multipart/form-data":
+            fields = cgi.parse_multipart(self.rfile, pdict)
+            return fields
+
+    
     def do_POST(self):
         if self.path == "/leaderboard/school/search":
-            ctype, pdict = cgi.parse_header(self.headers.get('content-type'))
-            pdict['boundary'] = bytes(pdict['boundary'], "utf-8")
-            content_len = int(self.headers.get('Content-length'))
-            pdict['CONTENT-LENGTH'] = content_len
-            if ctype == "multipart/form-data":
-                fields = cgi.parse_multipart(self.rfile, pdict)
-                self.school_id = fields.get('school_id')
-                print(f"SCHOOL ID IS {self.school_id}")
+            fields = self.get_POST_fields()
+            school_id = fields.get('school_id')[0]
 
             self.send_response(301)
-            self.send_header('Location', "/leaderboard/global")
+            self.send_header('Location', "/leaderboard/school")
+            self.send_header("Set-Cookie", f"school_id={school_id}") # stores value in a cookie.
+            self.end_headers()
+        
+        if self.path == "/leaderboard/subject/search":
+            fields = self.get_POST_fields()
+            school_id = fields.get('school_id')[0]
+            subject_id = fields.get('subject_id')[0]
+
+            self.send_response(301)
+            self.send_header('Location', "/leaderboard/subject")
+            self.send_header("Set-Cookie", f"school_id={school_id}") # stores value in a cookie.
+            self.send_header("Set-Cookie", f"subject_id={subject_id}") # stores value in a cookie.
+
             self.end_headers()
 
     
@@ -56,7 +74,7 @@ class requestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 return
             
-            if self.path == "/leaderboard":
+            if self.path == "/leaderboard" or self.path == "/leaderboard/":
                 self.send_response(301)
                 self.send_header("Location", "/leaderboard/index")
                 self.end_headers()
@@ -92,20 +110,48 @@ class requestHandler(BaseHTTPRequestHandler):
                 schools_list = self.db.fetch_all_schools()
 
                 try:
-                    if self.school_id:
-                        table_entries = self.db.fetch_leaderboard_school(self.school_id)
-                        school_name = self.db.fetch_school(self.school_id)['name']
+                    cookies = SimpleCookie(self.headers.get('Cookie'))
+                    school_id = int(cookies['school_id'].value)
+
+                    if school_id:
+                        table_entries = self.db.fetch_leaderboard_school(school_id)
+                        school_name = self.db.fetch_school(school_id)['name']
                         
                         page = jinja_template.render(schools_list=schools_list,
                                                      table_entries=table_entries,
                                                      school_name=school_name)
-                
+
                 except:
                     page = jinja_template.render(schools_list=schools_list)
 
+            if self.path == "/leaderboard/subject":
+                schools_list = self.db.fetch_all_schools()
+                subjects_list = self.db.fetch_all_subjects()
+
+                try:
+                    cookies = SimpleCookie(self.headers.get('Cookie'))
+                    school_id = int(cookies['school_id'].value)
+                    subject_id = cookies['subject_id'].value
+
+                    if school_id and subject_id:
+                        table_entries = self.db.fetch_leaderboard_school_subject(school_id, subject_id)
+                        school_name = self.db.fetch_school(school_id)['name']
+                        subject_name = self.db.fetch_subject(subject_id)['name']
+
+                        page = jinja_template.render(table_entries=table_entries,
+                                                     schools_list=schools_list,
+                                                     subjects_list=subjects_list,
+                                                     school_name=school_name,
+                                                     subject_name=subject_name)
+                        
+                except:
+                    page = jinja_template.render(schools_list=schools_list, subjects_list=subjects_list)
 
 
             if self.path == "/analysis/index":
+                page = jinja_template.render()
+            
+            if self.path == "/analysis/user_question":
                 page = jinja_template.render()
 
 
