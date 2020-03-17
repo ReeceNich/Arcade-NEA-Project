@@ -7,6 +7,7 @@ from .sprites import Player, AnswerSprite, CorrectSprite, IncorrectSprite, Cloud
 from .sounds import Sounds
 from .constants import Constants
 from database.database_classes import QuestionAnswered, Topic
+from .queue import Queue
 
 
 class MyGame(arcade.Window):
@@ -63,7 +64,7 @@ class MyGame(arcade.Window):
         
         self.player_score = 0
 
-        self.QuestionsAnswered = []
+        self.QuestionsAnswered = Queue()
 
 
     def on_draw(self):
@@ -129,6 +130,8 @@ class MyGame(arcade.Window):
         arcade.draw_text("Game Over", 0, self.constants.height//2, arcade.color.DARK_RED, 96, self.constants.width, 'center')
         if self.out_of_questions:
             arcade.draw_text("The game ran out of questions... restart a new game", 0, self.constants.height//2 - 85, arcade.color.BLACK, 14, self.constants.width, 'center')
+        else:
+            arcade.draw_text(f"Great effort, {self.user['name']}!", 0, self.constants.height//2 - 85, arcade.color.BLACK, 14, self.constants.width, 'center')
         arcade.draw_text(f"Final score: {self.player_score}", 0, self.constants.height//2 - 125, arcade.color.BLACK, 18, self.constants.width, 'center')
         arcade.draw_text("Click anywhere to go back to the start...", 0, 150, arcade.color.BLACK, 18, self.constants.width, 'center')
 
@@ -277,7 +280,7 @@ class MyGame(arcade.Window):
                         # updates QuestionAnswered
                         q_a = QuestionAnswered(self.user_id, incorrect.answer_class['question_id'], incorrect.answer_class['answer_id'], datetime.datetime.now())
                         print(f"JUST ANSWERED AT: {q_a.time}")
-                        self.QuestionsAnswered.append(q_a)
+                        self.QuestionsAnswered.en_queue(q_a)
 
                         incorrect.remove_from_sprite_lists()
                         arcade.play_sound(self.sounds.explosion_2)
@@ -305,7 +308,7 @@ class MyGame(arcade.Window):
                         # updates QuestionAnswered
                         q_a = QuestionAnswered(self.user_id, correct.answer_class['question_id'], correct.answer_class['answer_id'], datetime.datetime.now())
                         print(f"JUST ANSWERED AT: {q_a.time}")
-                        self.QuestionsAnswered.append(q_a)
+                        self.QuestionsAnswered.en_queue(q_a)
 
                         # TODO: This player_score should be removed or changed. Dodgey logic, perhaps replace with a questions_answered_correctly score?
                         self.player_score += int(self.current_question['difficulty_id'])
@@ -438,10 +441,12 @@ class MyGame(arcade.Window):
 
 
     def write_questions_answered_to_database(self):
-        for entity in self.QuestionsAnswered:
+        queue_len = self.QuestionsAnswered.size()
+        for _ in range(0, queue_len):
+            entity = self.QuestionsAnswered.de_queue()
             self.db.insert_question_answered(entity)
             print(f"Inserting entity -> Question ID: {entity.question_id}, Answer ID: {entity.answer_id}, Time: {entity.time}...")
-        self.QuestionsAnswered = []
+        
 
 
 if __name__ == "__main__":
